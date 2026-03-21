@@ -117,12 +117,12 @@ function renderTabela() {
 
       return `<tr>
         <td>${n.id}</td>
-        <td><strong>${n.contrato_numero}</strong></td>
-        <td>${n.empresa_nome}</td>
-        <td>${n.numero_nf}</td>
+        <td><strong>${esc(n.contrato_numero)}</strong></td>
+        <td>${esc(n.empresa_nome)}</td>
+        <td>${esc(n.numero_nf)}</td>
         <td>R$ ${parseFloat(n.valor_nf).toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
         <td>${MESES[n.mes_referencia]}/${n.ano_referencia}</td>
-        <td>${n.numero_medicao}</td>
+        <td>${esc(n.numero_medicao)}</td>
         <td><span class="badge ${badgeClass}">${status}</span></td>
         <td>
           <div class="meatball-wrap">
