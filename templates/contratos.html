@@ -367,7 +367,7 @@ async function verHistoricoAlt(cid) {
         <tbody>${all.map(a => `<tr>
           <td>${a.data_alteracao}</td>
           <td>${a.tabela === 'contratos' ? 'Contrato' : `Empenho ${a.empenho_numero || ''}`}</td>
-          <td>${a.campo}</td>
+          <td>${esc(a.campo)}</td>
           <td style="color:#c00">${a.valor_anterior || '–'}</td>
           <td style="color:#0a7a4e">${a.valor_novo || '–'}</td>
         </tr>`).join('')}</tbody>
@@ -381,9 +381,9 @@ async function verRelatorio(cid) {
   try {
     const data = await apiFetch(`/api/contratos/${cid}/relatorio-empenhos`);
     const body = document.getElementById('relatorio-body');
-    document.getElementById('relatorio-title').textContent = `Relatório – Contrato ${data.contrato.numero}`;
+    document.getElementById('relatorio-title').textContent = `Relatório – Contrato ${esc(data.contrato.numero)}`;
     let html = `<div class="flex-between" style="margin-bottom:12px">
-      <span class="text-muted">${data.contrato.empresa_nome}</span>
+      <span class="text-muted">${esc(data.contrato.empresa_nome)}</span>
       <a href="/api/historico/exportar-xlsx?contrato_id=${cid}" class="btn btn-secondary btn-sm">Exportar CSV</a>
     </div>`;
     data.empenhos.forEach(emp => {
@@ -391,7 +391,7 @@ async function verRelatorio(cid) {
       const pct = emp.valor_total > 0 ? (usado / emp.valor_total * 100).toFixed(1) : 0;
       html += `<div class="empenho-row" style="margin-bottom:16px">
         <div class="row-header">
-          <span><strong>Empenho ${emp.numero}</strong></span>
+          <span><strong>Empenho ${esc(emp.numero)}</strong></span>
           <span class="saldo-info ${emp.saldo_atual <= 0 ? 'saldo-insuf' : ''}">Saldo: ${formatBRL(emp.saldo_atual)}</span>
         </div>
         <div style="font-size:12px;color:#666;margin-bottom:8px">
@@ -401,8 +401,8 @@ async function verRelatorio(cid) {
         html += `<table style="font-size:12px">
           <thead><tr><th>NF</th><th>Medição</th><th>Mês/Ano</th><th>Valor Usado</th><th>Saldo Anterior</th><th>Status</th></tr></thead>
           <tbody>${emp.usos.map(u => `<tr>
-            <td>${u.numero_nf}</td>
-            <td>${u.numero_medicao}</td>
+            <td>${esc(u.numero_nf)}</td>
+            <td>${esc(u.numero_medicao)}</td>
             <td>${u.mes_referencia}/${u.ano_referencia}</td>
             <td>${formatBRL(u.valor_usado)}</td>
             <td>${formatBRL(u.saldo_anterior)}</td>
