@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}Gerador de Anexos{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+{% block scripts_head %}{% endblock %}
+</head>
+<body>
+<nav class="navbar">
+  <div class="nav-brand">
+    <span class="nav-logo">📄</span>
+    <span>Gerador de Anexos</span>
+  </div>
+  <div class="nav-links">
+    <a href="{{ url_for('anexos.home') }}" class="nav-link {% if request.endpoint == 'anexos.home' %}active{% endif %}">Home</a>
+    <a href="{{ url_for('anexos.gerar_form') }}" class="nav-link {% if request.endpoint and 'gerar' in request.endpoint %}active{% endif %}">Gerar Anexos</a>
+    <a href="{{ url_for('anexos.historico') }}" class="nav-link {% if request.endpoint == 'anexos.historico' %}active{% endif %}">Histórico</a>
+    <a href="{{ url_for('contratos.listar') }}" class="nav-link {% if request.endpoint == 'contratos.listar' %}active{% endif %}">Contratos</a>
+    <a href="{{ url_for('empresas.listar') }}" class="nav-link {% if request.endpoint == 'empresas.listar' %}active{% endif %}">Empresas</a>
+    <a href="{{ url_for('pessoas.listar') }}" class="nav-link {% if request.endpoint == 'pessoas.listar' %}active{% endif %}">Pessoas</a>
+    <a href="/manual" class="nav-link {% if request.endpoint == 'manual' %}active{% endif %}">Manual</a>
+  </div>
+  <div class="nav-user">
+    <span class="nav-username">{{ session.get('usuario', '') }}</span>
+    <a href="{{ url_for('auth.logout') }}" class="nav-logout" title="Sair">⏻ Sair</a>
+  </div>
+</nav>
+<main class="main-content">
+  {% block content %}{% endblock %}
+</main>
+
+<div id="toast" class="toast hidden"></div>
+
+<footer class="app-footer">
+  <div class="footer-inner">
+    <div class="footer-title">Gerador de Anexos <span class="footer-badge">v0.4.0 · protótipo</span></div>
+    <p class="footer-desc">
+      Desenvolvido por <strong>Pedro Quinellato Dutra Vieira</strong> com o auxílio do modelo de inteligência artificial <strong>Claude Sonnet 4.6</strong> (Anthropic).
+      O sistema tem como finalidade auxiliar servidores da SEMED no preenchimento e geração dos anexos utilizados no processo de pagamento de notas fiscais de contratos municipais.
+    </p>
+    <div class="footer-notices">
+      <div class="footer-notice footer-notice-warning">
+        <span class="footer-notice-label">Atenção</span>
+        Esta é uma versão de protótipo (v0.4.0). Recomenda-se conferir os documentos gerados antes de utilizá-los oficialmente.
+      </div>
+      <div class="footer-notice footer-notice-info">
+        <span class="footer-notice-label">Privacidade e dados</span>
+        O Gerador de Anexos armazena os dados localmente ou em banco de dados privado. Nenhum dado é transmitido a terceiros.
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

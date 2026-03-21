@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Acesso – Gerador de Anexos</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<style>
+  body { background: linear-gradient(135deg, #001a5c 0%, #003087 50%, #0055cc 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; margin: 0; }
+  .login-wrap { width: 100%; max-width: 400px; padding: 24px; }
+  .login-card { background: #fff; border-radius: 20px; padding: 40px 36px; box-shadow: 0 24px 64px rgba(0,0,48,.25); }
+  .login-logo { text-align: center; margin-bottom: 28px; }
+  .login-logo-icon { width: 56px; height: 56px; background: linear-gradient(135deg, #003087, #0077ff); border-radius: 16px; display: inline-flex; align-items: center; justify-content: center; font-size: 26px; margin-bottom: 12px; }
+  .login-logo h1 { font-size: 20px; font-weight: 800; color: #0d1b3e; margin: 0 0 4px; }
+  .login-logo p { font-size: 13px; color: #8899bb; margin: 0; }
+  .login-error { background: #fff0f0; border: 1.5px solid #ffcccc; border-left: 4px solid #c00; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #c00; margin-bottom: 20px; }
+  .login-form .form-group { margin-bottom: 16px; }
+  .login-form label { display: block; font-size: 12px; font-weight: 700; color: #555; text-transform: uppercase; letter-spacing: .4px; margin-bottom: 6px; }
+  .login-form input { width: 100%; padding: 11px 14px; border: 1.5px solid #dde3f0; border-radius: 10px; font-size: 14px; color: #0d1b3e; outline: none; transition: border-color .15s; box-sizing: border-box; }
+  .login-form input:focus { border-color: #003087; box-shadow: 0 0 0 3px rgba(0,48,135,.1); }
+  .login-btn { width: 100%; padding: 12px; background: linear-gradient(135deg, #003087, #0055cc); color: #fff; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 8px; transition: opacity .15s, transform .15s; }
+  .login-btn:hover { opacity: .92; transform: translateY(-1px); }
+  .login-footer { text-align: center; margin-top: 20px; font-size: 12px; color: #aab; }
+</style>
+</head>
+<body>
+<div class="login-wrap">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-icon">📄</div>
+      <h1>Gerador de Anexos</h1>
+      <p>SEMED – Prefeitura de Vila Velha</p>
+    </div>
+    {% if error %}
+    <div class="login-error">{{ error }}</div>
+    {% endif %}
+    <form method="POST" class="login-form">
+      <input type="hidden" name="next" value="{{ next }}">
+      <div class="form-group">
+        <label>Usuário</label>
+        <input type="text" name="usuario" autocomplete="username" autofocus required placeholder="Digite seu usuário">
+      </div>
+      <div class="form-group">
+        <label>Senha</label>
+        <input type="password" name="senha" autocomplete="current-password" required placeholder="Digite sua senha">
+      </div>
+      <button type="submit" class="login-btn">Entrar</button>
+    </form>
+    <div class="login-footer">Gerador de Anexos v0.4.0 · Protótipo</div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,648 @@
+{% extends "base.html" %}
+{% block title %}Gerar Anexos – SEMED{% endblock %}
+{% block content %}
+<div class="page-header">
+ <h1> Gerar Anexos de Pagamento</h1>
+ <p>Preencha as informações para gerar os documentos</p>
+</div>
+
+<!-- Step indicator -->
+<div class="steps" id="steps-bar">
+ <div class="step active" id="step-ind-1"><div class="step-num">1</div><span>Informações Gerais</span></div>
+ <div class="step-sep"></div>
+ <div class="step" id="step-ind-2"><div class="step-num">2</div><span>Anexo III</span></div>
+ <div class="step-sep"></div>
+ <div class="step" id="step-ind-3"><div class="step-num">3</div><span>Anexo VI</span></div>
+ <div class="step-sep"></div>
+ <div class="step" id="step-ind-4"><div class="step-num">4</div><span>Revisão e PDFs</span></div>
+</div>
+
+<!-- STEP 1: Informações Gerais -->
+<div class="card" id="step-1">
+ <div class="card-title"> Informações Gerais</div>
+
+ <div class="form-grid-2">
+ <div class="form-group">
+ <label>Contrato *</label>
+ <select id="sel-contrato" onchange="carregarContrato()">
+ <option value="">Selecione o contrato...</option>
+ {% for c in contratos %}
+ <option value="{{ c.id }}">{{ c.numero }} – {{ c.empresa_nome }}</option>
+ {% endfor %}
+ </select>
+ </div>
+ <div class="form-group">
+ <label>Número da Medição *</label>
+ <input type="text" id="inp-medicao" placeholder="Ex: 01/2026">
+ </div>
+ <div class="form-group">
+ <label>Período da Medição – Início *</label>
+ <input type="date" id="inp-per-ini">
+ </div>
+ <div class="form-group">
+ <label>Período da Medição – Fim *</label>
+ <input type="date" id="inp-per-fim">
+ </div>
+ <div class="form-group">
+ <label>Mês de Referência *</label>
+ <select id="sel-mes">
+ <option value="">Mês...</option>
+ <option value="1">Janeiro</option><option value="2">Fevereiro</option>
+ <option value="3">Março</option><option value="4">Abril</option>
+ <option value="5">Maio</option><option value="6">Junho</option>
+ <option value="7">Julho</option><option value="8">Agosto</option>
+ <option value="9">Setembro</option><option value="10">Outubro</option>
+ <option value="11">Novembro</option><option value="12">Dezembro</option>
+ </select>
+ </div>
+ <div class="form-group">
+ <label>Ano de Referência *</label>
+ <input type="number" id="inp-ano" placeholder="Ex: 2026" min="2020" max="2099">
+ </div>
+ </div>
+
+ <!-- Gestores/Fiscais (carregados dinamicamente) -->
+ <div id="sec-gestores" style="display:none;margin-top:16px">
+ <div class="card-title"> Gestores e Fiscais para Assinatura</div>
+ <div class="alert alert-info">Selecione quem irá assinar os documentos. Por padrão os titulares são selecionados.</div>
+ <div class="form-grid-2">
+ <div class="form-group">
+ <label>Gestor *</label>
+ <select id="sel-gestor">
+ <option value="">Carregando...</option>
+ </select>
+ </div>
+ <div class="form-group">
+ <label>Fiscal *</label>
+ <select id="sel-fiscal">
+ <option value="">Carregando...</option>
+ </select>
+ </div>
+ </div>
+ </div>
+
+ <!-- NF -->
+ <div style="margin-top:16px">
+ <div class="card-title"> Nota Fiscal</div>
+ <div class="form-grid-2">
+ <div class="form-group">
+ <label>Número da NF *</label>
+ <input type="text" id="inp-nf-num" placeholder="Ex: 000123">
+ </div>
+ <div class="form-group">
+ <label>Valor da NF R$ *</label>
+ <input type="number" step="0.01" id="inp-nf-val" placeholder="0,00" oninput="atualizarTotalEmpenhos()">
+ </div>
+ <div class="form-group">
+ <label>Meio de Recebimento da Documentação *</label>
+ <select id="sel-meio">
+ <option value="e-mail">E-mail</option>
+ <option value="processo eletrônico">Processo eletrônico</option>
+ <option value="protocolo físico">Protocolo físico</option>
+ </select>
+ </div>
+ </div>
+ </div>
+
+ <!-- Empenhos para pagamento -->
+ <div id="sec-empenhos" style="display:none;margin-top:16px">
+ <div class="card-title"> Empenhos para Pagamento
+ <button class="btn btn-secondary btn-sm" style="margin-left:auto" onclick="addEmpenhoUso()">+ Empenho</button>
+ </div>
+ <div id="empenhos-uso-container"></div>
+ <div id="total-empenhos-info" style="margin-top:8px;font-weight:600;font-size:13px"></div>
+ </div>
+
+ <div class="btn-group mt-16">
+ <button class="btn btn-primary" onclick="irParaStep(2)">Próximo: Anexo III →</button>
+ </div>
+</div>
+
+<!-- STEP 2: Anexo III -->
+<div class="card" id="step-2" style="display:none">
+ <div class="card-title"> Anexo III – Acompanhamento da Execução</div>
+
+ <div class="form-group" style="margin-bottom:16px">
+ <label>Houve ocorrências no período?</label>
+ <div style="display:flex;gap:16px;margin-top:8px">
+ <label style="text-transform:none;font-weight:normal;display:flex;align-items:center;gap:6px;cursor:pointer">
+ <input type="radio" name="ocorrencias" value="nao" checked onchange="toggleOcorrencias(false)"> Não houve ocorrências
+ </label>
+ <label style="text-transform:none;font-weight:normal;display:flex;align-items:center;gap:6px;cursor:pointer">
+ <input type="radio" name="ocorrencias" value="sim" onchange="toggleOcorrencias(true)"> Houve ocorrências
+ </label>
+ </div>
+ </div>
+
+ <div id="sec-ocorrencias" style="display:none">
+ <div class="form-group" style="margin-bottom:12px">
+ <label>Execução Contratual – Descrição das ocorrências</label>
+ <textarea id="txt-occ-exec" rows="4" placeholder="Descreva a forma que vem sendo prestado o serviço e cada problema detectado..."></textarea>
+ </div>
+ <div class="form-group" style="margin-bottom:12px">
+ <label>Providências / Documentos Expedidos</label>
+ <textarea id="txt-occ-prov" rows="4" placeholder="Descreva as providências adotadas para solução de cada problema..."></textarea>
+ </div>
+ <div class="form-group">
+ <label>Resultados</label>
+ <textarea id="txt-occ-res" rows="4" placeholder="Informe se os problemas foram sanados ou não e quais as consequências e encaminhamentos..."></textarea>
+ </div>
+ </div>
+
+ <div class="btn-group mt-16">
+ <button class="btn btn-secondary" onclick="irParaStep(1)">← Voltar</button>
+ <button class="btn btn-primary" onclick="irParaStep(3)">Próximo: Anexo VI →</button>
+ </div>
+</div>
+
+<!-- STEP 3: Anexo VI Checklist -->
+<div class="card" id="step-3" style="display:none">
+ <div class="card-title"> Anexo VI – Checklist de Obrigações</div>
+ <div class="alert alert-info" style="margin-bottom:16px">
+ Marque cada item como <strong>Sim</strong>, <strong>Não</strong> ou <strong>N/A</strong>.
+ </div>
+
+ <div id="checklist-container"></div>
+
+ <div class="btn-group mt-16">
+ <button class="btn btn-secondary" onclick="irParaStep(2)">← Voltar</button>
+ <button class="btn btn-primary" onclick="irParaStep(4)">Próximo: Revisão →</button>
+ </div>
+</div>
+
+<!-- STEP 4: Revisão e PDF -->
+<div class="card" id="step-4" style="display:none">
+ <div class="card-title"> Revisão e Geração de Anexos</div>
+
+ <div id="revisao-info"></div>
+
+ <div class="alert alert-warning" id="alert-rascunho" style="display:none">
+ ️ Este é um <strong>rascunho</strong>. O saldo dos empenhos ainda não foi descontado. Confira os dados e clique em <strong>Confirmar e Gerar PDFs</strong> para efetivar o pagamento.
+ </div>
+
+ <div id="pdf-actions-container" style="display:none">
+ <div class="card-title" style="margin-top:16px"> Baixar Documentos</div>
+ <div class="pdf-actions">
+ <a id="pdf-all" href="#" class="pdf-btn all" target="_blank"> Todos os Anexos (PDF único)</a>
+ <a id="pdf-iii" href="#" class="pdf-btn" target="_blank"> Anexo III</a>
+ <a id="pdf-vi" href="#" class="pdf-btn" target="_blank"> Anexo VI</a>
+ <a id="pdf-ix" href="#" class="pdf-btn" target="_blank"> Anexo IX</a>
+ <a id="pdf-ateste" href="#" class="pdf-btn" target="_blank"> Ateste</a>
+ </div>
+ </div>
+
+ <div class="btn-group mt-16" id="btn-confirmar-group">
+ <button class="btn btn-secondary" onclick="irParaStep(3)">← Voltar</button>
+ <button class="btn btn-secondary" onclick="salvarRascunho()"> Salvar Rascunho</button>
+ <button class="btn btn-primary" id="btn-confirmar" onclick="confirmarNF()"> Confirmar e Gerar PDFs</button>
+ </div>
+ <div class="btn-group mt-16" id="btn-pos-confirmacao" style="display:none">
+ <button class="btn btn-secondary" onclick="location.href='/historico'"> Ver Histórico</button>
+ <button class="btn btn-primary" onclick="location.reload()">+ Novo Pagamento</button>
+ </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// ── STATE ──
+let contratoData = null;
+let nfId = null;
+let confirmado = false;
+
+const CHECKLIST_ITEMS = [
+ { section: '1. MEDIÇÃO' },
+ { key: '1.1', label: 'Medição dos serviços prestados?' },
+ { key: '1.2', label: 'Avaliação do Fiscal sobre os serviços prestados?' },
+ { section: '2. NOTA FISCAL' },
+ { key: '2.1', label: 'Solicitação de pagamento da empresa?' },
+ { key: '2.2', label: 'Nota Fiscal correspondente ao mês de medição?' },
+ { key: '2.3', label: 'A Nota Fiscal é um documento válido?' },
+ { key: '2.4', label: 'Constam retenções contratuais na Nota Fiscal?' },
+ { key: '2.5', label: 'Consta retenção de INSS na Nota Fiscal?' },
+ { key: '2.6', label: 'A Razão Social, Endereço e o CNPJ da Unidade Gestora estão corretos?' },
+ { key: '2.7', label: 'A Razão Social, o Endereço e o CNPJ da empresa contratada estão corretos?' },
+ { key: '2.8', label: 'Possui o ateste do Fiscal do Contrato no documento fiscal?' },
+ { section: '3. SALÁRIO/VALE TRANSPORTE/ALIMENTAÇÃO/FÉRIAS' },
+ { key: '3.1', label: 'Consta Folha de Pagamento da empresa em dia com o mês de referência da documentação?' },
+ { key: '3.2', label: 'Consta de 13º Salário, quando devido?' },
+ { key: '3.3', label: 'Contracheques e Comprovantes de depósito bancário do mês de referência?' },
+ { key: '3.4', label: 'Consta documento com a relação de funcionários?' },
+ { key: '3.5', label: 'Folha de Ponto?' },
+ { key: '3.6', label: 'Seguro de vida obrigatório?' },
+ { key: '3.7', label: 'Relatório de Movimentação Funcional dos Empregados Vinculados ao Contrato?' },
+ { key: '3.8', label: 'Comprovante de pagamento de Vale Transporte com relação de funcionários e renúncia de vale-transporte?' },
+ { key: '3.9', label: 'Comprovante de pagamento de Vale Refeição e relação de funcionários?' },
+ { key: '3.10', label: 'Avisos e recibos de pagamento de férias?' },
+ { key: '3.11', label: 'Aviso prévio ou pedido de demissão dos empregados da empresa contratada vinculados ao contrato?' },
+ { key: '3.12', label: 'Documento com as eventuais rescisões ocorridas?' },
+ { key: '3.13', label: 'Guia de recolhimento dos Rescisórios do FGTS – GRRF...' },
+ { key: '3.14', label: 'Reembolso de Termo de Rescisão de Contrato de Trabalho – TRCT?' },
+ { section: '4. RECOLHIMENTOS' },
+ { key: '4.1', label: 'Comprovante de declaração à previdência?' },
+ { key: '4.2', label: 'Apresenta guia (GPS) e comprovante de pagamento de INSS do mês de referência – Recolhimento Empresa?' },
+ { key: '4.3', label: 'Apresenta guia (GRF) e comprovante de pagamento de FGTS do mês de referência?' },
+ { key: '4.4', label: 'Apresenta o relatório GFIP/SEFIP?' },
+ { key: '4.5', label: 'O valor constante na GFIP/SEFIP coincide com as guias de pagamento? Se não, justificar.' },
+ { key: '4.6', label: 'Relação dos trabalhadores constantes no arquivo SEFIP – RE?' },
+ { key: '4.7', label: 'Relação Tomadores/Obras – RET?' },
+ { key: '4.8', label: 'Apresenta Protocolo Conectividade Social do mês de referência?' },
+ { key: '4.9', label: 'Recolhimento do ISS?' },
+ { section: '5. CERTIDÕES NEGATIVAS' },
+ { key: '5.1', label: 'Apresenta Certidão Negativa da União?' },
+ { key: '5.2', label: 'Apresenta Certidão Negativa da Fazenda Pública Estadual da sede da empresa?' },
+ { key: '5.3', label: 'Apresenta Certidão Negativa da Fazenda Pública Municipal da sede da empresa?' },
+ { key: '5.4', label: 'Apresenta Certidão Negativa da Fazenda Pública Municipal do Município de Vila Velha?' },
+ { key: '5.5', label: 'Apresenta Certidão de Regularidade de FGTS (Matriz e Filial)?' },
+ { key: '5.6', label: 'Apresenta Certidão Negativa de Débitos Trabalhistas (CNDT)?' },
+ { section: '6. OUTROS DOCUMENTOS' },
+ { key: '6.1', label: 'Consta a Declaração de Contabilidade Regular?' },
+ { key: '6.2', label: 'Consta o Relatório de Comprovação de Adimplência de Encargos (RECAE)?' },
+ { key: '6.3', label: 'Consta do Processo de Pagamento cópia do Contrato?' },
+ { key: '6.4', label: 'Consta do Processo de Pagamento cópia do Aditivo contratual vigente?' },
+ { key: '6.5', label: 'Consta do Processo de Pagamento cópia da publicação da Portaria de nomeação do Gestor e Fiscal e seus suplentes do Contrato?' },
+ { key: '6.6', label: 'Consta do Processo de Pagamento cópia da Nota de Empenho?' },
+ { key: '6.7', label: 'Saldo de Empenho?' },
+ { key: '6.8', label: 'Garantia contratual vigente?' },
+ { key: '6.9', label: 'Empresa optante pelo SIMPLES (Consulta Optantes – Simples Nacional)?' },
+];
+
+// ── CONTRATO LOAD ──
+async function carregarContrato() {
+ const cid = document.getElementById('sel-contrato').value;
+ if (!cid) { contratoData = null; document.getElementById('sec-gestores').style.display='none'; document.getElementById('sec-empenhos').style.display='none'; return; }
+ try {
+ contratoData = await apiFetch(`/api/contrato/${cid}/dados-formulario`);
+ // Gestores
+ const sg = document.getElementById('sel-gestor');
+ const sf = document.getElementById('sel-fiscal');
+ sg.innerHTML = '';
+ sf.innerHTML = '';
+ const people = [
+ { id: contratoData.gestor_titular_id, info: contratoData.gestor_titular_info, role: 'Gestor Titular' },
+ { id: contratoData.gestor_suplente_id, info: contratoData.gestor_suplente_info, role: 'Gestor Suplente' },
+ ];
+ people.forEach(p => {
+ if (p.info) {
+ const opt = new Option(`${p.info.nome} – ${p.info.matricula} (${p.role})`, p.id);
+ if (p.role === 'Gestor Titular') opt.selected = true;
+ sg.appendChild(opt);
+ }
+ });
+ const fiscais = [
+ { id: contratoData.fiscal_titular_id, info: contratoData.fiscal_titular_info, role: 'Fiscal Titular' },
+ { id: contratoData.fiscal_suplente_id, info: contratoData.fiscal_suplente_info, role: 'Fiscal Suplente' },
+ ];
+ fiscais.forEach(p => {
+ if (p.info) {
+ const opt = new Option(`${p.info.nome} – ${p.info.matricula} (${p.role})`, p.id);
+ if (p.role === 'Fiscal Titular') opt.selected = true;
+ sf.appendChild(opt);
+ }
+ });
+ document.getElementById('sec-gestores').style.display = 'block';
+ // Empenhos
+ renderEmpenhoUso();
+ document.getElementById('sec-empenhos').style.display = 'block';
+ } catch(e) {}
+}
+
+// ── EMPENHO USO ──
+let empUsoRows = [];
+
+function renderEmpenhoUso() {
+ const container = document.getElementById('empenhos-uso-container');
+ container.innerHTML = '';
+ empUsoRows = [];
+ if (contratoData && contratoData.empenhos) {
+ contratoData.empenhos.forEach(e => {
+ addEmpenhoUsoRow(e);
+ });
+ }
+}
+
+function addEmpenhoUso() {
+ if (!contratoData || !contratoData.empenhos || !contratoData.empenhos.length) {
+ showToast('Selecione um contrato com empenhos cadastrados', 'error');
+ return;
+ }
+ // Add a selector to pick which empenho
+ const container = document.getElementById('empenhos-uso-container');
+ const div = document.createElement('div');
+ div.className = 'empenho-row';
+ const opts = contratoData.empenhos.map(e =>
+ `<option value="${e.id}">${e.numero} – Saldo: ${formatBRL(e.saldo_atual)}</option>`
+ ).join('');
+ div.innerHTML = `
+ <div class="row-header">
+ <select class="uso-emp-select" style="flex:1;margin-right:8px" onchange="atualizarTotalEmpenhos()">${opts}</select>
+ <button class="btn btn-danger btn-sm" onclick="this.closest('.empenho-row').remove();atualizarTotalEmpenhos()">Remover</button>
+ </div>
+ <div class="form-grid-2">
+ <div class="form-group"><label>Valor a usar deste empenho R$ *</label>
+ <input type="number" step="0.01" class="uso-emp-val" placeholder="0,00" oninput="atualizarTotalEmpenhos()">
+ </div>
+ <div class="form-group"><label>Saldo disponível</label>
+ <input type="text" class="uso-emp-saldo" disabled>
+ </div>
+ </div>`;
+ container.appendChild(div);
+ // Update saldo display when select changes
+ const sel = div.querySelector('.uso-emp-select');
+ const saldoInp = div.querySelector('.uso-emp-saldo');
+ sel.addEventListener('change', () => {
+ const emp = contratoData.empenhos.find(e => e.id == sel.value);
+ saldoInp.value = emp ? formatBRL(emp.saldo_atual) : '';
+ atualizarTotalEmpenhos();
+ });
+ // Init saldo
+ const emp = contratoData.empenhos.find(e => e.id == sel.value);
+ saldoInp.value = emp ? formatBRL(emp.saldo_atual) : '';
+ atualizarTotalEmpenhos();
+}
+
+function addEmpenhoUsoRow(emp) {
+ const container = document.getElementById('empenhos-uso-container');
+ const div = document.createElement('div');
+ div.className = 'empenho-row';
+ div.dataset.empId = emp.id;
+ const saldoClass = emp.saldo_atual <= 0 ? 'saldo-insuf' : '';
+ div.innerHTML = `
+ <div class="row-header">
+ <span><strong>${emp.numero}</strong></span>
+ <span class="saldo-info ${saldoClass}" id="saldo-display-${emp.id}">Saldo disponível: ${formatBRL(emp.saldo_atual)}</span>
+ </div>
+ <div class="form-grid-2">
+ <div class="form-group"><label>Valor a usar deste empenho R$</label>
+ <input type="number" step="0.01" class="uso-emp-val" data-emp-id="${emp.id}"
+   data-saldo="${emp.saldo_atual}" data-numero="${emp.numero}"
+   placeholder="Deixe 0 para não usar este empenho" oninput="atualizarTotalEmpenhos()">
+ </div>
+ <div class="form-group"><label>Saldo disponível</label>
+ <input type="text" value="${formatBRL(emp.saldo_atual)}" disabled
+   class="${emp.saldo_atual <= 0 ? 'saldo-insuf' : ''}">
+ </div>
+ </div>
+ <div id="alerta-emp-${emp.id}" style="display:none;margin-top:6px"></div>`;
+ container.appendChild(div);
+}
+
+function atualizarTotalEmpenhos() {
+ const nfVal = parseFloat(document.getElementById('inp-nf-val').value) || 0;
+ let total = 0;
+ let erros = [];
+ document.querySelectorAll('.uso-emp-val').forEach(inp => {
+   const val = parseFloat(inp.value) || 0;
+   const saldo = parseFloat(inp.dataset.saldo) || 0;
+   const numero = inp.dataset.numero || '';
+   const empId = inp.dataset.empId;
+   total += val;
+   const alertEl = document.getElementById(`alerta-emp-${empId}`);
+   if (alertEl) {
+     if (val > saldo) {
+       alertEl.style.display = 'block';
+       alertEl.innerHTML = `<div class="alert alert-danger" style="margin:0;padding:6px 10px;font-size:12px">Saldo insuficiente no empenho ${numero}. Disponível: ${formatBRL(saldo)}</div>`;
+     } else if (val > 0 && (saldo - val) < val) {
+       alertEl.style.display = 'block';
+       alertEl.innerHTML = `<div class="alert alert-warning" style="margin:0;padding:6px 10px;font-size:12px">Atenção: após este pagamento o saldo restante (${formatBRL(saldo - val)}) será menor que o valor pago.</div>`;
+     } else {
+       alertEl.style.display = 'none';
+     }
+   }
+ });
+ const info = document.getElementById('total-empenhos-info');
+ if (!info) return;
+ const diff = nfVal - total;
+ if (Math.abs(diff) < 0.01) {
+   info.innerHTML = `<span style="color:#0a7a4e">Total empenhos: ${formatBRL(total)} = Valor NF: ${formatBRL(nfVal)}</span>`;
+ } else if (diff > 0) {
+   info.innerHTML = `<span style="color:#b07800">Total empenhos: ${formatBRL(total)} – faltam ${formatBRL(diff)} para cobrir a NF</span>`;
+ } else {
+   info.innerHTML = `<span style="color:#c00">Total empenhos: ${formatBRL(total)} – excede em ${formatBRL(-diff)}</span>`;
+ }
+}
+
+// ── STEP NAVIGATION ──
+function irParaStep(n) {
+ if (n > 1 && !validarStep1()) return;
+ for (let i = 1; i <= 4; i++) {
+ const el = document.getElementById(`step-${i}`);
+ if (el) el.style.display = i === n ? 'block' : 'none';
+ const ind = document.getElementById(`step-ind-${i}`);
+ if (ind) {
+ ind.className = `step ${i < n ? 'done' : i === n ? 'active' : ''}`;
+ }
+ }
+ if (n === 3) buildChecklist();
+ if (n === 4) buildRevisao();
+ window.scrollTo(0, 0);
+}
+
+function validarStep1() {
+ const campos = [
+ ['sel-contrato', 'Selecione o contrato'],
+ ['inp-medicao', 'Informe o número da medição'],
+ ['inp-per-ini', 'Informe o período início'],
+ ['inp-per-fim', 'Informe o período fim'],
+ ['sel-mes', 'Selecione o mês de referência'],
+ ['inp-ano', 'Informe o ano de referência'],
+ ['inp-nf-num', 'Informe o número da NF'],
+ ['inp-nf-val', 'Informe o valor da NF'],
+ ];
+ for (const [id, msg] of campos) {
+ if (!document.getElementById(id)?.value) {
+ showToast(msg, 'error');
+ document.getElementById(id)?.focus();
+ return false;
+ }
+ }
+ // Check empenhos
+ let totalEmp = 0;
+ document.querySelectorAll('.uso-emp-val').forEach(inp => { totalEmp += parseFloat(inp.value) || 0; });
+ const nfVal = parseFloat(document.getElementById('inp-nf-val').value) || 0;
+ if (Math.abs(totalEmp - nfVal) > 0.01) {
+ showToast('O total dos empenhos deve ser igual ao valor da NF', 'error');
+ return false;
+ }
+ return true;
+}
+
+// ── CHECKLIST BUILD ──
+function buildChecklist() {
+ const container = document.getElementById('checklist-container');
+ if (container.children.length > 0) return;
+ let html = '';
+ CHECKLIST_ITEMS.forEach(item => {
+ if (item.section) {
+ html += `<div class="checklist-section-title">${item.section}</div>`;
+ } else {
+ html += `<div class="checklist-item">
+ <label>${item.key} – ${item.label}</label>
+ <div class="checklist-radio">
+ <input type="radio" name="cl-${item.key}" value="sim" id="cl-${item.key}-sim">
+ <label for="cl-${item.key}-sim" style="cursor:pointer">Sim</label>
+ </div>
+ <div class="checklist-radio">
+ <input type="radio" name="cl-${item.key}" value="nao" id="cl-${item.key}-nao">
+ <label for="cl-${item.key}-nao" style="cursor:pointer">Não</label>
+ </div>
+ <div class="checklist-radio">
+ <input type="radio" name="cl-${item.key}" value="na" id="cl-${item.key}-na" checked>
+ <label for="cl-${item.key}-na" style="cursor:pointer">N/A</label>
+ </div>
+ </div>`;
+ }
+ });
+ container.innerHTML = html;
+}
+
+function coletarChecklist() {
+ const result = {};
+ CHECKLIST_ITEMS.forEach(item => {
+ if (!item.key) return;
+ const checked = document.querySelector(`input[name="cl-${item.key}"]:checked`);
+ result[item.key] = checked ? checked.value : 'na';
+ });
+ return result;
+}
+
+// ── OCORRÊNCIAS ──
+function toggleOcorrencias(show) {
+ document.getElementById('sec-ocorrencias').style.display = show ? 'block' : 'none';
+}
+
+// ── REVISÃO ──
+function buildRevisao() {
+ const contrato = contratoData;
+ const nfNum = document.getElementById('inp-nf-num').value;
+ const nfVal = parseFloat(document.getElementById('inp-nf-val').value) || 0;
+ const medicao = document.getElementById('inp-medicao').value;
+ const mes = document.getElementById('sel-mes').options[document.getElementById('sel-mes').selectedIndex]?.text;
+ const ano = document.getElementById('inp-ano').value;
+ const periIni = document.getElementById('inp-per-ini').value;
+ const periFim = document.getElementById('inp-per-fim').value;
+
+ let empHtml = '';
+ document.querySelectorAll('.empenho-row').forEach(row => {
+ const empId = row.dataset.empId;
+ const val = parseFloat(row.querySelector('.uso-emp-val')?.value) || 0;
+ if (val > 0 && empId && contrato) {
+ const emp = contrato.empenhos?.find(e => e.id == empId);
+ if (emp) empHtml += `<li>${emp.numero}: ${formatBRL(val)}</li>`;
+ }
+ // Also handle dynamic rows with select
+ const sel = row.querySelector('.uso-emp-select');
+ if (sel && !empId) {
+ const val2 = parseFloat(row.querySelector('.uso-emp-val')?.value) || 0;
+ if (val2 > 0) empHtml += `<li>Empenho selecionado: ${formatBRL(val2)}</li>`;
+ }
+ });
+
+ document.getElementById('revisao-info').innerHTML = `
+ <div class="form-grid-2" style="margin-bottom:16px">
+ <div><strong>Contrato:</strong> ${contrato?.numero || ''}</div>
+ <div><strong>Empresa:</strong> ${contrato?.empresa_nome || ''}</div>
+ <div><strong>NF:</strong> ${nfNum}</div>
+ <div><strong>Valor:</strong> ${formatBRL(nfVal)}</div>
+ <div><strong>Medição:</strong> ${medicao}</div>
+ <div><strong>Mês Ref.:</strong> ${mes}/${ano}</div>
+ <div><strong>Período:</strong> ${periIni} a ${periFim}</div>
+ <div><strong>Empenhos:</strong><ul style="margin:4px 0 0 16px;font-size:12px">${empHtml}</ul></div>
+ </div>`;
+ document.getElementById('alert-rascunho').style.display = 'block';
+}
+
+// ── COLETAR PAYLOAD ──
+function coletarPayload() {
+ const cid = document.getElementById('sel-contrato').value;
+ const empenhos_usados = [];
+
+ document.querySelectorAll('.empenho-row').forEach(row => {
+ // Fixed rows (from contrato)
+ const empId = row.dataset.empId;
+ if (empId) {
+ const val = parseFloat(row.querySelector('.uso-emp-val')?.value) || 0;
+ if (val > 0) empenhos_usados.push({ empenho_id: parseInt(empId), valor_usado: val });
+ } else {
+ // Dynamic rows with select
+ const sel = row.querySelector('.uso-emp-select');
+ const val = parseFloat(row.querySelector('.uso-emp-val')?.value) || 0;
+ if (sel && val > 0) empenhos_usados.push({ empenho_id: parseInt(sel.value), valor_usado: val });
+ }
+ });
+
+ const houve = document.querySelector('input[name="ocorrencias"]:checked')?.value === 'sim';
+
+ return {
+ contrato_id: parseInt(cid),
+ numero_nf: document.getElementById('inp-nf-num').value.trim(),
+ valor_nf: parseFloat(document.getElementById('inp-nf-val').value),
+ mes_referencia: parseInt(document.getElementById('sel-mes').value),
+ ano_referencia: parseInt(document.getElementById('inp-ano').value),
+ periodo_inicio: document.getElementById('inp-per-ini').value,
+ periodo_fim: document.getElementById('inp-per-fim').value,
+ numero_medicao: document.getElementById('inp-medicao').value.trim(),
+ gestor_id: parseInt(document.getElementById('sel-gestor').value),
+ fiscal_id: parseInt(document.getElementById('sel-fiscal').value),
+ meio_recebimento: document.getElementById('sel-meio').value,
+ houve_ocorrencias: houve,
+ ocorrencia_execucao: document.getElementById('txt-occ-exec')?.value || '',
+ ocorrencia_providencias: document.getElementById('txt-occ-prov')?.value || '',
+ ocorrencia_resultados: document.getElementById('txt-occ-res')?.value || '',
+ checklist: coletarChecklist(),
+ empenhos_usados,
+ };
+}
+
+async function salvarRascunho() {
+ // Validate saldo first
+ const payload = coletarPayload();
+ try {
+   const validacao = await apiFetch('/api/nf/validar-saldo', { method: 'POST', body: payload });
+   if (!validacao.ok) {
+     showToast(validacao.erros[0], 'error');
+     return;
+   }
+   const data = await apiFetch('/api/nf/salvar-rascunho', { method: 'POST', body: payload });
+   nfId = data.nf_id;
+   showToast('Rascunho salvo! ID: ' + nfId, 'success');
+ } catch(e) {}
+}
+
+async function confirmarNF() {
+ const payload = coletarPayload();
+ // Validate saldo before proceeding
+ try {
+   const validacao = await apiFetch('/api/nf/validar-saldo', { method: 'POST', body: payload });
+   if (!validacao.ok) {
+     showToast(validacao.erros[0], 'error');
+     return;
+   }
+   if (validacao.alertas && validacao.alertas.length) {
+     const msg = validacao.alertas.join('\n') + '\n\nDeseja continuar mesmo assim?';
+     if (!confirm(msg)) return;
+   }
+ } catch(e) { return; }
+
+ try {
+   if (!nfId) {
+     const data = await apiFetch('/api/nf/salvar-rascunho', { method: 'POST', body: payload });
+     nfId = data.nf_id;
+   }
+   await apiFetch(`/api/nf/${nfId}/confirmar`, { method: 'POST' });
+   confirmado = true;
+   showToast('Pagamento confirmado! Saldos atualizados.', 'success');
+   document.getElementById('alert-rascunho').style.display = 'none';
+   document.getElementById('btn-confirmar-group').style.display = 'none';
+   document.getElementById('btn-pos-confirmacao').style.display = 'flex';
+   document.getElementById('pdf-actions-container').style.display = 'block';
+   document.getElementById('pdf-all').href = `/api/nf/${nfId}/pdf/todos`;
+   document.getElementById('pdf-iii').href = `/api/nf/${nfId}/pdf/anexo_iii`;
+   document.getElementById('pdf-vi').href = `/api/nf/${nfId}/pdf/anexo_vi`;
+   document.getElementById('pdf-ix').href = `/api/nf/${nfId}/pdf/anexo_ix`;
+   document.getElementById('pdf-ateste').href = `/api/nf/${nfId}/pdf/ateste`;
+ } catch(e) {}
+}
+</script>
+{% endblock %}

@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Pessoas – Gerador de Anexos{% endblock %}
+{% block content %}
+<div class="page-header flex-between">
+  <div><h1>Cadastro de Pessoas</h1><p>Gestores e Fiscais de contrato</p></div>
+  <button class="btn btn-primary" onclick="openModal('modal-pessoa')">+ Nova Pessoa</button>
+</div>
+
+<div class="card">
+  <div class="table-wrapper">
+    <table id="tbl-pessoas">
+      <thead><tr><th>Nome</th><th>Matrícula</th><th>Ações</th></tr></thead>
+      <tbody>
+        {% for p in pessoas %}
+        <tr data-id="{{ p.id }}">
+          <td>{{ p.nome }}</td>
+          <td>{{ p.matricula }}</td>
+          <td>
+            <div class="meatball-wrap">
+              <button class="meatball-btn" onclick="toggleMeatball('mb-p-{{ p.id }}', this)">···</button>
+              <div class="meatball-menu" id="mb-p-{{ p.id }}">
+                <button class="meatball-item" onclick="document.getElementById('mb-p-{{ p.id }}').classList.remove('open');editarPessoa({{ p.id }}, '{{ p.nome }}', '{{ p.matricula }}')">Editar</button>
+                <div class="meatball-sep"></div>
+                <button class="meatball-item danger" onclick="document.getElementById('mb-p-{{ p.id }}').classList.remove('open');deletarPessoa({{ p.id }})">Excluir</button>
+              </div>
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="3" class="empty-state"><p>Nenhuma pessoa cadastrada.</p></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal-pessoa">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modal-title">Nova Pessoa</h2>
+      <button class="modal-close" onclick="closeModal('modal-pessoa')">×</button>
+    </div>
+    <input type="hidden" id="pessoa-id">
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Nome completo *</label>
+        <input type="text" id="pessoa-nome" placeholder="Nome do gestor/fiscal">
+      </div>
+      <div class="form-group">
+        <label>Matrícula *</label>
+        <input type="text" id="pessoa-matricula" placeholder="Ex: 12345">
+      </div>
+    </div>
+    <div class="btn-group mt-16">
+      <button class="btn btn-primary" onclick="salvarPessoa()">Salvar</button>
+      <button class="btn btn-secondary" onclick="closeModal('modal-pessoa')">Cancelar</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function editarPessoa(id, nome, matricula) {
+  document.getElementById('pessoa-id').value = id;
+  document.getElementById('pessoa-nome').value = nome;
+  document.getElementById('pessoa-matricula').value = matricula;
+  document.getElementById('modal-title').textContent = 'Editar Pessoa';
+  openModal('modal-pessoa');
+}
+
+async function salvarPessoa() {
+  const id = document.getElementById('pessoa-id').value;
+  const nome = document.getElementById('pessoa-nome').value.trim();
+  const matricula = document.getElementById('pessoa-matricula').value.trim();
+  if (!nome || !matricula) return showToast('Preencha nome e matrícula', 'error');
+  try {
+    if (id) {
+      await apiFetch(`/api/pessoas/${id}`, { method: 'PUT', body: { nome, matricula } });
+      showToast('Pessoa atualizada!', 'success');
+    } else {
+      await apiFetch('/api/pessoas', { method: 'POST', body: { nome, matricula } });
+      showToast('Pessoa cadastrada!', 'success');
+    }
+    location.reload();
+  } catch(e) {}
+}
+
+async function deletarPessoa(id) {
+  confirmAction('Deseja excluir esta pessoa?', async () => {
+    try {
+      await apiFetch(`/api/pessoas/${id}`, { method: 'DELETE' });
+      showToast('Pessoa excluída!', 'success');
+      location.reload();
+    } catch(e) {}
+  });
+}
+</script>
+{% endblock %}
+

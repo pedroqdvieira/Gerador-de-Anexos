@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block title %}Empresas – Gerador de Anexos{% endblock %}
+{% block content %}
+<div class="page-header flex-between">
+  <div><h1>Cadastro de Empresas</h1><p>Empresas contratadas</p></div>
+  <button class="btn btn-primary" onclick="novaEmpresa()">+ Nova Empresa</button>
+</div>
+
+<div class="card">
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>Razão Social</th><th>CNPJ</th><th>Banco</th><th>Conta</th><th>Ações</th></tr></thead>
+      <tbody>
+        {% for e in empresas %}
+        <tr>
+          <td>{{ e.razao_social }}</td>
+          <td>{{ e.cnpj }}</td>
+          <td>{{ e.banco or '–' }}</td>
+          <td>{{ e.conta_bancaria or '–' }}</td>
+          <td>
+            <div class="meatball-wrap">
+              <button class="meatball-btn" onclick="toggleMeatball('mb-e-{{ e.id }}', this)">···</button>
+              <div class="meatball-menu" id="mb-e-{{ e.id }}">
+                <button class="meatball-item" onclick="document.getElementById('mb-e-{{ e.id }}').classList.remove('open');editarEmpresaById({{ e.id }})">Editar</button>
+                <div class="meatball-sep"></div>
+                <button class="meatball-item danger" onclick="document.getElementById('mb-e-{{ e.id }}').classList.remove('open');deletarEmpresa({{ e.id }})">Excluir</button>
+              </div>
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" style="text-align:center;padding:32px;color:#aaa">Nenhuma empresa cadastrada.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal-empresa">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="emp-modal-title">Nova Empresa</h2>
+      <button class="modal-close" onclick="closeModal('modal-empresa')">×</button>
+    </div>
+    <input type="hidden" id="emp-id">
+    <div class="form-grid-2">
+      <div class="form-group full-width"><label>Razão Social *</label><input type="text" id="emp-razao"></div>
+      <div class="form-group"><label>CNPJ *</label><input type="text" id="emp-cnpj" placeholder="XX.XXX.XXX/XXXX-XX"></div>
+      <div class="form-group"><label>Endereço</label><input type="text" id="emp-endereco"></div>
+      <div class="form-group"><label>Banco</label><input type="text" id="emp-banco" placeholder="Ex: Banco do Brasil"></div>
+      <div class="form-group"><label>Agência</label><input type="text" id="emp-agencia"></div>
+      <div class="form-group"><label>Conta Bancária nº</label><input type="text" id="emp-conta"></div>
+      <div class="form-group"><label>Tipo de Operação Bancária</label><input type="text" id="emp-tipo-op" placeholder="Ex: Conta Corrente"></div>
+    </div>
+    <div class="btn-group mt-16">
+      <button class="btn btn-primary" onclick="salvarEmpresa()">Salvar</button>
+      <button class="btn btn-secondary" onclick="closeModal('modal-empresa')">Cancelar</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function novaEmpresa() {
+  document.getElementById('emp-id').value = '';
+  ['razao','cnpj','endereco','banco','agencia','conta','tipo-op'].forEach(f => document.getElementById(`emp-${f}`).value = '');
+  document.getElementById('emp-modal-title').textContent = 'Nova Empresa';
+  openModal('modal-empresa');
+}
+
+async function editarEmpresaById(id) {
+  try {
+    const empresas = await apiFetch('/api/empresas');
+    const e = empresas.find(x => x.id === id);
+    if (e) editarEmpresa(e);
+  } catch(err) {}
+}
+
+function editarEmpresa(e) {
+  document.getElementById('emp-id').value = e.id;
+  document.getElementById('emp-razao').value = e.razao_social || '';
+  document.getElementById('emp-cnpj').value = e.cnpj || '';
+  document.getElementById('emp-endereco').value = e.endereco || '';
+  document.getElementById('emp-banco').value = e.banco || '';
+  document.getElementById('emp-agencia').value = e.agencia || '';
+  document.getElementById('emp-conta').value = e.conta_bancaria || '';
+  document.getElementById('emp-tipo-op').value = e.tipo_operacao || '';
+  document.getElementById('emp-modal-title').textContent = 'Editar Empresa';
+  openModal('modal-empresa');
+}
+
+async function salvarEmpresa() {
+  const id = document.getElementById('emp-id').value;
+  const body = {
+    razao_social: document.getElementById('emp-razao').value.trim(),
+    cnpj: document.getElementById('emp-cnpj').value.trim(),
+    endereco: document.getElementById('emp-endereco').value.trim(),
+    banco: document.getElementById('emp-banco').value.trim(),
+    agencia: document.getElementById('emp-agencia').value.trim(),
+    conta_bancaria: document.getElementById('emp-conta').value.trim(),
+    tipo_operacao: document.getElementById('emp-tipo-op').value.trim(),
+  };
+  if (!body.razao_social || !body.cnpj) return showToast('Razão Social e CNPJ são obrigatórios', 'error');
+  try {
+    if (id) await apiFetch(`/api/empresas/${id}`, { method: 'PUT', body });
+    else await apiFetch('/api/empresas', { method: 'POST', body });
+    showToast('Empresa salva!', 'success');
+    location.reload();
+  } catch(e) {}
+}
+
+async function deletarEmpresa(id) {
+  confirmAction('Deseja excluir esta empresa?', async () => {
+    try {
+      await apiFetch(`/api/empresas/${id}`, { method: 'DELETE' });
+      showToast('Empresa excluída!', 'success');
+      location.reload();
+    } catch(e) {}
+  });
+}
+</script>
+{% endblock %}

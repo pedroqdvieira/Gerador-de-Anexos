@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+{% block title %}Histórico – Gerador de Anexos{% endblock %}
+{% block content %}
+<div class="page-header flex-between">
+  <div><h1>Histórico de Pagamentos</h1><p>Notas fiscais registradas no sistema</p></div>
+  <a href="{{ url_for('anexos.gerar_form') }}" class="btn btn-primary">+ Novo Pagamento</a>
+</div>
+
+<div class="card" style="margin-bottom:12px">
+  <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+    <div class="form-group" style="flex:1;min-width:200px;margin:0">
+      <label>Buscar</label>
+      <input type="text" id="inp-busca" placeholder="Contrato, empresa, NF, medição, data..." oninput="buscar()">
+    </div>
+    <div class="form-group" style="min-width:200px;margin:0">
+      <label>Filtrar por Contrato</label>
+      <select id="sel-contrato-filtro" onchange="buscar()">
+        <option value="">Todos os contratos</option>
+        {% for c in contratos %}
+        <option value="{{ c.id }}">{{ c.numero }} – {{ c.empresa_nome }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-group" style="margin:0">
+      <label>Registros por página</label>
+      <select id="sel-pagina-size" onchange="buscar()">
+        <option value="5">5</option>
+        <option value="10">10</option>
+        <option value="20" selected>20</option>
+        <option value="50">50</option>
+        <option value="100">100</option>
+        <option value="9999">Todos</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:8px;align-items:flex-end">
+      <button class="btn btn-secondary" onclick="exportarCSV()">Exportar CSV</button>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-wrapper">
+    <table id="tbl-historico">
+      <thead>
+        <tr>
+          <th>ID</th><th>Contrato</th><th>Empresa</th><th>NF</th>
+          <th>Valor</th><th>Mês Ref.</th><th>Medição</th><th>Status</th><th>Ações</th>
+        </tr>
+      </thead>
+      <tbody id="tbody-historico">
+        <tr><td colspan="9" style="text-align:center;padding:32px;color:#aaa">Carregando...</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div id="paginacao" style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:13px"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const MESES = ['','Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+let todosRegistros = [];
+let paginaAtual = 1;
+let buscarTimer = null;
+
+async function carregarHistorico() {
+  const q = document.getElementById('inp-busca').value.trim();
+  const cid = document.getElementById('sel-contrato-filtro').value;
+  let url = '/api/historico?';
+  if (q) url += `q=${encodeURIComponent(q)}&`;
+  if (cid) url += `contrato_id=${cid}`;
+  todosRegistros = await apiFetch(url);
+  paginaAtual = 1;
+  renderTabela();
+}
+
+function buscar() {
+  clearTimeout(buscarTimer);
+  buscarTimer = setTimeout(carregarHistorico, 300);
+}
+
+function renderTabela() {
+  const size = parseInt(document.getElementById('sel-pagina-size').value);
+  const total = todosRegistros.length;
+  const totalPags = Math.max(1, Math.ceil(total / size));
+  if (paginaAtual > totalPags) paginaAtual = totalPags;
+  const inicio = (paginaAtual - 1) * size;
+  const registros = todosRegistros.slice(inicio, inicio + size);
+
+  const tbody = document.getElementById('tbody-historico');
+  if (!registros.length) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:32px;color:#aaa">Nenhum registro encontrado.</td></tr>';
+  } else {
+    tbody.innerHTML = registros.map(n => {
+      const status = n.cancelada ? 'Cancelada' : (n.data_geracao ? 'Confirmada' : 'Rascunho');
+      const badgeClass = n.cancelada ? 'badge-danger' : (n.data_geracao ? 'badge-success' : 'badge-warning');
+      const mbId = `mb-nf-${n.id}`;
+      const temPdf = n.data_geracao && !n.cancelada;
+
+      let menuItems = '';
+      if (temPdf) {
+        menuItems += `
+          <a href="/api/nf/${n.id}/pdf/zip" class="meatball-item" target="_blank">Baixar todos (ZIP)</a>
+          <div class="meatball-sep"></div>
+          <a href="/api/nf/${n.id}/pdf/ateste" class="meatball-item" target="_blank">Ateste</a>
+          <a href="/api/nf/${n.id}/pdf/anexo_iii" class="meatball-item" target="_blank">Anexo III</a>
+          <a href="/api/nf/${n.id}/pdf/anexo_vi" class="meatball-item" target="_blank">Anexo VI</a>
+          <a href="/api/nf/${n.id}/pdf/anexo_ix" class="meatball-item" target="_blank">Anexo IX</a>
+          <div class="meatball-sep"></div>`;
+      }
+      if (!n.cancelada) {
+        menuItems += `<button class="meatball-item danger" onclick="closeAllMenus();cancelarNF(${n.id})">Cancelar NF</button>`;
+      }
+      if (n.cancelada || !n.data_geracao) {
+        menuItems += `<button class="meatball-item danger" onclick="closeAllMenus();deletarNF(${n.id})">Excluir registro</button>`;
+      }
+
+      return `<tr>
+        <td>${n.id}</td>
+        <td><strong>${n.contrato_numero}</strong></td>
+        <td>${n.empresa_nome}</td>
+        <td>${n.numero_nf}</td>
+        <td>R$ ${parseFloat(n.valor_nf).toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
+        <td>${MESES[n.mes_referencia]}/${n.ano_referencia}</td>
+        <td>${n.numero_medicao}</td>
+        <td><span class="badge ${badgeClass}">${status}</span></td>
+        <td>
+          <div class="meatball-wrap">
+            <button class="meatball-btn" onclick="toggleMeatball('${mbId}', this)">···</button>
+            <div class="meatball-menu" id="${mbId}">${menuItems}</div>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  // Paginação
+  const pag = document.getElementById('paginacao');
+  if (totalPags <= 1) {
+    pag.innerHTML = `<span class="text-muted">Exibindo ${total} registro(s)</span>`;
+  } else {
+    const maxBtns = 7;
+    let btnNums = [];
+    if (totalPags <= maxBtns) {
+      btnNums = Array.from({length: totalPags}, (_, i) => i + 1);
+    } else {
+      btnNums = [1];
+      let start = Math.max(2, paginaAtual - 2);
+      let end = Math.min(totalPags - 1, paginaAtual + 2);
+      if (start > 2) btnNums.push('...');
+      for (let i = start; i <= end; i++) btnNums.push(i);
+      if (end < totalPags - 1) btnNums.push('...');
+      btnNums.push(totalPags);
+    }
+    const btns = btnNums.map(p =>
+      p === '...'
+        ? `<span style="padding:0 4px;color:#aaa">…</span>`
+        : `<button class="btn btn-sm ${p===paginaAtual?'btn-primary':'btn-secondary'}" onclick="irPagina(${p})">${p}</button>`
+    ).join('');
+    pag.innerHTML = `
+      <span class="text-muted">Exibindo ${inicio+1}–${Math.min(inicio+size, total)} de ${total}</span>
+      <div style="display:flex;gap:4px;align-items:center">
+        <button class="btn btn-secondary btn-sm" onclick="irPagina(${paginaAtual-1})" ${paginaAtual<=1?'disabled':''}>Anterior</button>
+        ${btns}
+        <button class="btn btn-secondary btn-sm" onclick="irPagina(${paginaAtual+1})" ${paginaAtual>=totalPags?'disabled':''}>Próximo</button>
+      </div>`;
+  }
+}
+
+function closeAllMenus() {
+  document.querySelectorAll('.meatball-menu.open').forEach(m => m.classList.remove('open'));
+}
+
+function irPagina(p) {
+  const size = parseInt(document.getElementById('sel-pagina-size').value);
+  const totalPags = Math.max(1, Math.ceil(todosRegistros.length / size));
+  if (p < 1 || p > totalPags) return;
+  paginaAtual = p;
+  renderTabela();
+}
+
+function exportarCSV() {
+  const cid = document.getElementById('sel-contrato-filtro').value;
+  window.location.href = '/api/historico/exportar-xlsx' + (cid ? `?contrato_id=${cid}` : '');
+}
+
+async function cancelarNF(id) {
+  confirmAction('Deseja cancelar esta NF? Os saldos de empenho serão restaurados.', async () => {
+    try {
+      await apiFetch(`/api/nf/${id}/cancelar`, { method: 'POST' });
+      showToast('NF cancelada! Saldos restaurados.', 'success');
+      carregarHistorico();
+    } catch(e) {}
+  });
+}
+
+async function deletarNF(id) {
+  confirmAction('Deseja excluir permanentemente este registro?', async () => {
+    try {
+      await apiFetch(`/api/nf/${id}/deletar`, { method: 'DELETE' });
+      showToast('Registro excluído!', 'success');
+      carregarHistorico();
+    } catch(e) {}
+  });
+}
+
+carregarHistorico();
+</script>
+{% endblock %}

@@ -1,0 +1,599 @@
+{% extends "base.html" %}
+{% block title %}Home – Gerador de Anexos{% endblock %}
+
+{% block scripts_head %}
+<style>
+/* ── HOME PAGE ───────────────────────────────────────────────── */
+.home-wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 0 48px;
+}
+
+/* Hero */
+.hero {
+  background: linear-gradient(135deg, #003087 0%, #0055cc 60%, #0077ff 100%);
+  border-radius: 20px;
+  padding: 40px 44px;
+  margin-bottom: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -60px; right: -60px;
+  width: 280px; height: 280px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.06);
+  pointer-events: none;
+}
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: -80px; right: 120px;
+  width: 200px; height: 200px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.04);
+  pointer-events: none;
+}
+.hero-text h1 {
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 6px;
+  letter-spacing: -.3px;
+}
+.hero-text p {
+  font-size: 14px;
+  color: rgba(255,255,255,.75);
+  margin: 0 0 22px;
+  line-height: 1.6;
+  max-width: 420px;
+}
+.hero-date {
+  font-size: 12px;
+  color: rgba(255,255,255,.55);
+  background: rgba(255,255,255,.1);
+  border-radius: 20px;
+  padding: 4px 12px;
+  display: inline-block;
+  margin-bottom: 20px;
+}
+.hero-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.hero-btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 10px 20px; border-radius: 10px;
+  font-size: 13.5px; font-weight: 600; text-decoration: none;
+  transition: all .18s; cursor: pointer; border: none;
+}
+.hero-btn-primary {
+  background: #fff; color: #003087;
+}
+.hero-btn-primary:hover { background: #e8f0fe; transform: translateY(-1px); }
+.hero-btn-secondary {
+  background: rgba(255,255,255,.15); color: #fff;
+  border: 1.5px solid rgba(255,255,255,.3);
+}
+.hero-btn-secondary:hover { background: rgba(255,255,255,.25); transform: translateY(-1px); }
+.hero-badge {
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 16px;
+  padding: 28px 32px;
+  text-align: center;
+  min-width: 160px;
+  flex-shrink: 0;
+}
+.hero-badge-num {
+  font-size: 42px; font-weight: 800; color: #fff; line-height: 1;
+  display: block;
+}
+.hero-badge-label {
+  font-size: 12px; color: rgba(255,255,255,.65); margin-top: 6px;
+  text-transform: uppercase; letter-spacing: .5px;
+}
+
+/* Stat cards grid */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
+}
+@media (max-width: 860px) { .stat-grid { grid-template-columns: repeat(2,1fr); } }
+
+.stat-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 22px 24px;
+  border: 1.5px solid #eef2f8;
+  box-shadow: 0 2px 12px rgba(0,48,135,.05);
+  display: flex; flex-direction: column; gap: 6px;
+  transition: box-shadow .18s, transform .18s;
+  position: relative; overflow: hidden;
+}
+.stat-card:hover { box-shadow: 0 6px 24px rgba(0,48,135,.10); transform: translateY(-2px); }
+.stat-card-accent {
+  position: absolute; top: 0; left: 0;
+  width: 4px; height: 100%;
+  border-radius: 14px 0 0 14px;
+}
+.stat-label {
+  font-size: 11.5px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: .5px; color: #8899bb;
+}
+.stat-value {
+  font-size: 28px; font-weight: 800; color: #0d1b3e;
+  letter-spacing: -.5px; line-height: 1.1;
+}
+.stat-sub {
+  font-size: 12px; color: #8899bb; margin-top: 2px;
+}
+.stat-pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 11px; font-weight: 700; padding: 3px 8px;
+  border-radius: 20px; margin-top: 4px;
+}
+
+/* Status bar */
+.status-bar-wrap {
+  margin-bottom: 28px;
+  background: #fff;
+  border-radius: 14px;
+  padding: 22px 26px;
+  border: 1.5px solid #eef2f8;
+  box-shadow: 0 2px 12px rgba(0,48,135,.05);
+}
+.status-bar-title {
+  font-size: 13px; font-weight: 700; color: #0d1b3e;
+  margin-bottom: 14px; display: flex; align-items: center;
+  justify-content: space-between;
+}
+.status-bar-title a {
+  font-size: 12px; font-weight: 500; color: #0055cc; text-decoration: none;
+}
+.status-bar-title a:hover { text-decoration: underline; }
+.status-bar {
+  height: 12px; border-radius: 99px;
+  background: #eef2f8; overflow: hidden;
+  display: flex; margin-bottom: 12px;
+}
+.status-bar-seg { height: 100%; transition: width .6s ease; }
+.status-legend {
+  display: flex; gap: 20px; flex-wrap: wrap;
+}
+.status-legend-item {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 12.5px; color: #555;
+}
+.status-dot {
+  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+}
+
+/* Two-column bottom */
+.bottom-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+@media (max-width: 760px) { .bottom-grid { grid-template-columns: 1fr; } }
+
+.panel {
+  background: #fff;
+  border-radius: 14px;
+  border: 1.5px solid #eef2f8;
+  box-shadow: 0 2px 12px rgba(0,48,135,.05);
+  overflow: hidden;
+}
+.panel-header {
+  padding: 16px 22px;
+  border-bottom: 1px solid #f0f4fb;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.panel-title {
+  font-size: 13px; font-weight: 700; color: #0d1b3e;
+}
+.panel-link {
+  font-size: 12px; color: #0055cc; text-decoration: none; font-weight: 500;
+}
+.panel-link:hover { text-decoration: underline; }
+.panel-body { padding: 6px 0; }
+
+/* Alert items */
+.alert-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 22px;
+  border-bottom: 1px solid #f6f8fc;
+  transition: background .12s;
+}
+.alert-item:last-child { border-bottom: none; }
+.alert-item:hover { background: #f8faff; }
+.alert-dot-wrap {
+  width: 36px; height: 36px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; font-size: 15px;
+}
+.alert-info { flex: 1; min-width: 0; }
+.alert-contrato {
+  font-size: 13px; font-weight: 700; color: #0d1b3e;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.alert-empresa {
+  font-size: 11.5px; color: #8899bb;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.alert-badge {
+  font-size: 11px; font-weight: 700; padding: 3px 9px;
+  border-radius: 20px; flex-shrink: 0; white-space: nowrap;
+}
+.empty-panel {
+  padding: 32px; text-align: center;
+  color: #aab; font-size: 13px;
+}
+
+/* NF items */
+.nf-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 22px; border-bottom: 1px solid #f6f8fc;
+  transition: background .12s;
+}
+.nf-item:last-child { border-bottom: none; }
+.nf-item:hover { background: #f8faff; }
+.nf-num {
+  font-size: 13px; font-weight: 700; color: #0d1b3e; min-width: 60px;
+}
+.nf-info { flex: 1; min-width: 0; }
+.nf-contrato {
+  font-size: 11.5px; color: #8899bb;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.nf-val {
+  font-size: 13px; font-weight: 700; color: #0a7a4e; white-space: nowrap;
+}
+.nf-status-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+
+/* Quick access */
+.quick-grid {
+  display: grid; grid-template-columns: repeat(2,1fr); gap: 10px;
+  padding: 14px;
+}
+.quick-btn {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 16px; border-radius: 11px;
+  background: #f4f7ff; border: 1.5px solid #e4ecff;
+  text-decoration: none; transition: all .15s;
+  cursor: pointer;
+}
+.quick-btn:hover { background: #e8f0fe; border-color: #c0d0ff; transform: translateY(-1px); }
+.quick-icon {
+  width: 36px; height: 36px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; flex-shrink: 0;
+}
+.quick-label { font-size: 13px; font-weight: 600; color: #0d1b3e; }
+.quick-sub { font-size: 11px; color: #8899bb; margin-top: 1px; }
+
+/* Empenho progress */
+.emp-progress-wrap { padding: 18px 22px; }
+.emp-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
+.emp-label { font-size: 12.5px; color: #555; }
+.emp-val { font-size: 12.5px; font-weight: 700; color: #0d1b3e; }
+.emp-bar-bg {
+  height: 8px; border-radius: 99px; background: #eef2f8; overflow: hidden;
+  margin-bottom: 14px;
+}
+.emp-bar-fill {
+  height: 100%; border-radius: 99px;
+  background: linear-gradient(90deg, #0055cc, #0099ff);
+  transition: width .7s ease;
+}
+
+/* Skeleton loader */
+.skeleton {
+  background: linear-gradient(90deg, #f0f4fb 25%, #e4ecff 50%, #f0f4fb 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: 8px;
+}
+@keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+/* Fade in animation */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fadeUp .4s ease both; }
+.delay-1 { animation-delay: .05s; }
+.delay-2 { animation-delay: .10s; }
+.delay-3 { animation-delay: .15s; }
+.delay-4 { animation-delay: .20s; }
+.delay-5 { animation-delay: .25s; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="home-wrap">
+
+  <!-- HERO -->
+  <div class="hero fade-up">
+    <div class="hero-text">
+      <div class="hero-date" id="hero-date">carregando...</div>
+      <h1>Bem-vindo ao Gerador de Anexos</h1>
+      <p>Painel de controle da SEMED – acompanhe contratos, empenhos e pagamentos em tempo real.</p>
+      <div class="hero-actions">
+        <a href="/gerar-anexos" class="hero-btn hero-btn-primary">+ Novo Pagamento</a>
+        <a href="/contratos" class="hero-btn hero-btn-secondary">Ver Contratos</a>
+        <a href="/historico" class="hero-btn hero-btn-secondary">Histórico</a>
+      </div>
+    </div>
+    <div class="hero-badge" id="hero-badge">
+      <span class="hero-badge-num" id="hero-total">—</span>
+      <div class="hero-badge-label">Contratos ativos</div>
+    </div>
+  </div>
+
+  <!-- STAT CARDS -->
+  <div class="stat-grid">
+    <div class="stat-card fade-up delay-1">
+      <div class="stat-card-accent" style="background:#0055cc"></div>
+      <div class="stat-label">Contratos Vigentes</div>
+      <div class="stat-value" id="s-vigente">—</div>
+      <div class="stat-sub" id="s-vigente-sub">de <span id="s-total">—</span> contratos</div>
+    </div>
+    <div class="stat-card fade-up delay-2">
+      <div class="stat-card-accent" style="background:#f0a500"></div>
+      <div class="stat-label">Vencendo em 30 dias</div>
+      <div class="stat-value" id="s-vencendo">—</div>
+      <div class="stat-sub">requer atenção</div>
+    </div>
+    <div class="stat-card fade-up delay-3">
+      <div class="stat-card-accent" style="background:#c00"></div>
+      <div class="stat-label">Contratos Vencidos</div>
+      <div class="stat-value" id="s-vencido">—</div>
+      <div class="stat-sub">fora de vigência</div>
+    </div>
+    <div class="stat-card fade-up delay-4">
+      <div class="stat-card-accent" style="background:#0a7a4e"></div>
+      <div class="stat-label">Saldo em Empenhos</div>
+      <div class="stat-value" id="s-saldo" style="font-size:18px;padding-top:4px">—</div>
+      <div class="stat-sub" id="s-saldo-sub">de <span id="s-emp-total">—</span> empenhados</div>
+    </div>
+  </div>
+
+  <!-- STATUS BAR -->
+  <div class="status-bar-wrap fade-up delay-2">
+    <div class="status-bar-title">
+      <span>Distribuição dos Contratos por Status</span>
+      <a href="/contratos">Ver todos →</a>
+    </div>
+    <div class="status-bar">
+      <div class="status-bar-seg" id="bar-vigente" style="background:#0055cc;width:0%"></div>
+      <div class="status-bar-seg" id="bar-vencendo" style="background:#f0a500;width:0%"></div>
+      <div class="status-bar-seg" id="bar-vencido"  style="background:#e53935;width:0%"></div>
+    </div>
+    <div class="status-legend">
+      <div class="status-legend-item"><div class="status-dot" style="background:#0055cc"></div><span id="leg-vigente">Vigente (—)</span></div>
+      <div class="status-legend-item"><div class="status-dot" style="background:#f0a500"></div><span id="leg-vencendo">Vencendo (—)</span></div>
+      <div class="status-legend-item"><div class="status-dot" style="background:#e53935"></div><span id="leg-vencido">Vencido (—)</span></div>
+    </div>
+  </div>
+
+  <!-- BOTTOM GRID -->
+  <div class="bottom-grid">
+
+    <!-- Alertas de vencimento -->
+    <div class="panel fade-up delay-3">
+      <div class="panel-header">
+        <span class="panel-title">⚠ Contratos Próximos do Vencimento</span>
+        <a href="/contratos" class="panel-link">Ver todos</a>
+      </div>
+      <div class="panel-body" id="alertas-body">
+        <div class="empty-panel">Carregando...</div>
+      </div>
+    </div>
+
+    <!-- NFs recentes -->
+    <div class="panel fade-up delay-3">
+      <div class="panel-header">
+        <span class="panel-title">Últimas NFs Registradas</span>
+        <a href="/historico" class="panel-link">Ver histórico</a>
+      </div>
+      <div class="panel-body" id="nfs-body">
+        <div class="empty-panel">Carregando...</div>
+      </div>
+    </div>
+
+    <!-- Empenhos -->
+    <div class="panel fade-up delay-4">
+      <div class="panel-header">
+        <span class="panel-title">Utilização de Empenhos</span>
+        <a href="/contratos" class="panel-link">Detalhar</a>
+      </div>
+      <div class="emp-progress-wrap" id="emp-body">
+        <div class="empty-panel">Carregando...</div>
+      </div>
+    </div>
+
+    <!-- Acesso rápido -->
+    <div class="panel fade-up delay-4">
+      <div class="panel-header">
+        <span class="panel-title">Acesso Rápido</span>
+      </div>
+      <div class="quick-grid">
+        <a href="/gerar-anexos" class="quick-btn">
+          <div class="quick-icon" style="background:#e8f0fe">📄</div>
+          <div><div class="quick-label">Gerar Anexos</div><div class="quick-sub">Novo pagamento</div></div>
+        </a>
+        <a href="/contratos" class="quick-btn">
+          <div class="quick-icon" style="background:#e8f9f0">📋</div>
+          <div><div class="quick-label">Contratos</div><div class="quick-sub">Gerenciar</div></div>
+        </a>
+        <a href="/historico" class="quick-btn">
+          <div class="quick-icon" style="background:#fff8e8">🕑</div>
+          <div><div class="quick-label">Histórico</div><div class="quick-sub">Ver pagamentos</div></div>
+        </a>
+        <a href="/empresas" class="quick-btn">
+          <div class="quick-icon" style="background:#fce8e8">🏢</div>
+          <div><div class="quick-label">Empresas</div><div class="quick-sub">Cadastrar</div></div>
+        </a>
+        <a href="/pessoas" class="quick-btn">
+          <div class="quick-icon" style="background:#f0e8ff">👤</div>
+          <div><div class="quick-label">Pessoas</div><div class="quick-sub">Gestores / Fiscais</div></div>
+        </a>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const MESES_ABREV = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+function fmtBRL(v) {
+  if (v == null || isNaN(v)) return '—';
+  return 'R$ ' + parseFloat(v).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+function fmtDataBR(iso) {
+  if (!iso) return '';
+  const p = iso.split('-');
+  return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : iso;
+}
+
+// Hero date
+(function() {
+  const now = new Date();
+  const dias = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+  document.getElementById('hero-date').textContent =
+    `${dias[now.getDay()]}, ${now.getDate()} de ${['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+    'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'][now.getMonth()]} de ${now.getFullYear()}`;
+})();
+
+async function carregarDashboard() {
+  let d;
+  try { d = await apiFetch('/api/dashboard'); } catch(e) { return; }
+
+  const c = d.contratos;
+  const total = c.total || 1;
+
+  // Hero badge
+  document.getElementById('hero-total').textContent = c.vigente + c.vencendo;
+
+  // Stat cards
+  document.getElementById('s-vigente').textContent  = c.vigente;
+  document.getElementById('s-vencendo').textContent = c.vencendo;
+  document.getElementById('s-vencido').textContent  = c.vencido;
+  document.getElementById('s-total').textContent    = c.total;
+
+  const saldo = d.empenhos.saldo || 0;
+  const empTotal = d.empenhos.total || 0;
+  document.getElementById('s-saldo').textContent     = fmtBRL(saldo);
+  document.getElementById('s-emp-total').textContent = fmtBRL(empTotal);
+
+  // Status bar
+  const pV  = (c.vigente  / total * 100).toFixed(1);
+  const pVe = (c.vencendo / total * 100).toFixed(1);
+  const pVd = (c.vencido  / total * 100).toFixed(1);
+  setTimeout(() => {
+    document.getElementById('bar-vigente').style.width  = pV  + '%';
+    document.getElementById('bar-vencendo').style.width = pVe + '%';
+    document.getElementById('bar-vencido').style.width  = pVd + '%';
+  }, 200);
+  document.getElementById('leg-vigente').textContent  = `Vigente (${c.vigente})`;
+  document.getElementById('leg-vencendo').textContent = `Vencendo em 30 dias (${c.vencendo})`;
+  document.getElementById('leg-vencido').textContent  = `Vencido (${c.vencido})`;
+
+  // Alertas
+  const alertasEl = document.getElementById('alertas-body');
+  if (!d.alertas || !d.alertas.length) {
+    alertasEl.innerHTML = '<div class="empty-panel">✅ Nenhum contrato vencendo nos próximos 30 dias.</div>';
+  } else {
+    alertasEl.innerHTML = d.alertas.map(a => {
+      const urgente = a.dias <= 7;
+      const cor = urgente ? '#e53935' : '#f0a500';
+      const bg  = urgente ? '#fff0f0' : '#fff8e8';
+      const txt = a.dias <= 0 ? 'Vencido' : `${a.dias} dia${a.dias !== 1 ? 's' : ''}`;
+      return `<div class="alert-item">
+        <div class="alert-dot-wrap" style="background:${bg}">
+          <span style="color:${cor}">${urgente ? '🔴' : '🟡'}</span>
+        </div>
+        <div class="alert-info">
+          <div class="alert-contrato">${a.numero}</div>
+          <div class="alert-empresa">${a.empresa}</div>
+        </div>
+        <span class="alert-badge" style="background:${bg};color:${cor}">${txt}</span>
+      </div>`;
+    }).join('');
+  }
+
+  // NFs recentes
+  const nfsEl = document.getElementById('nfs-body');
+  if (!d.nfs_recentes || !d.nfs_recentes.length) {
+    nfsEl.innerHTML = '<div class="empty-panel">Nenhuma NF registrada ainda.</div>';
+  } else {
+    nfsEl.innerHTML = d.nfs_recentes.map(n => {
+      const cancelada = n.cancelada;
+      const rascunho  = !n.data_geracao && !cancelada;
+      const cor  = cancelada ? '#c00' : rascunho ? '#f0a500' : '#0a7a4e';
+      const dotC = cancelada ? '#c00' : rascunho ? '#f0a500' : '#0a7a4e';
+      const mes  = MESES_ABREV[(n.mes_referencia || 1) - 1];
+      return `<div class="nf-item">
+        <div class="nf-num">NF ${n.numero_nf}</div>
+        <div class="nf-info">
+          <div class="nf-contrato">${n.contrato_numero} · ${n.empresa}</div>
+          <div class="nf-contrato">${mes}/${n.ano_referencia}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="nf-val" style="color:${cor}">${fmtBRL(n.valor_nf)}</div>
+          <div style="display:flex;align-items:center;gap:4px;justify-content:flex-end;margin-top:3px">
+            <div class="nf-status-dot" style="background:${dotC}"></div>
+            <span style="font-size:11px;color:${dotC}">${cancelada?'Cancelada':rascunho?'Rascunho':'Confirmada'}</span>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // Empenhos progress
+  const empEl = document.getElementById('emp-body');
+  const util = d.empenhos.utilizado || 0;
+  const pct  = empTotal > 0 ? (util / empTotal * 100) : 0;
+  empEl.innerHTML = `
+    <div class="emp-row">
+      <span class="emp-label">Saldo disponível</span>
+      <span class="emp-val" style="color:#0a7a4e">${fmtBRL(saldo)}</span>
+    </div>
+    <div class="emp-bar-bg">
+      <div class="emp-bar-fill" style="width:0%" id="emp-fill"></div>
+    </div>
+    <div class="emp-row">
+      <span class="emp-label">Utilizado</span>
+      <span class="emp-val">${fmtBRL(util)}</span>
+    </div>
+    <div class="emp-row">
+      <span class="emp-label">Total empenhado</span>
+      <span class="emp-val">${fmtBRL(empTotal)}</span>
+    </div>
+    <div class="emp-row" style="margin-top:8px">
+      <span class="emp-label">Percentual utilizado</span>
+      <span class="emp-val" style="color:#0055cc">${pct.toFixed(1)}%</span>
+    </div>`;
+  setTimeout(() => {
+    const fill = document.getElementById('emp-fill');
+    if (fill) fill.style.width = Math.min(pct, 100) + '%';
+  }, 300);
+}
+
+carregarDashboard();
+</script>
+{% endblock %}

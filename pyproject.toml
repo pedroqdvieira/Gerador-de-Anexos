@@ -1,0 +1,29 @@
+[project]
+name = "gerador-anexos"
+version = "0.4.0"
+description = "Sistema de geração de anexos de pagamento de notas fiscais – SEMED Vila Velha"
+authors = [{ name = "Pedro Quinellato Dutra Vieira" }]
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Proprietary" }
+dependencies = [
+    "flask>=3.0.0",
+    "reportlab>=4.0.0",
+    "pypdf>=4.0.0",
+    "gunicorn>=21.0.0",
+    "psycopg2-binary>=2.9.0",
+    "werkzeug>=3.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pyinstaller>=6.0.0",
+]
+
+[tool.project]
+changelog = """
+0.4.0 – Hospedagem Railway + PostgreSQL + Home dashboard + Login + Manual
+0.3.0 – Meatball menus, ZIP de PDFs, datas dd/mm/yyyy, importador API
+0.2.0 – Histórico paginado, relatório de empenhos, exportação CSV
+0.1.0 – Sistema base: contratos, empenhos, geração de PDFs
+"""
