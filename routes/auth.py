@@ -6,7 +6,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 auth_bp = Blueprint('auth', __name__)
 
 # ── Credenciais ────────────────────────────────────────────────────────────────
-# Hash da senha "Pacu88123" gerado com werkzeug.security.generate_password_hash
+# Hash da senha gerado com werkzeug.security.generate_password_hash
 # Para alterar a senha, gere um novo hash com:
 #   python3 -c "from werkzeug.security import generate_password_hash; print(generate_password_hash('NOVA_SENHA'))"
 # e defina a variável de ambiente ADMIN_PASSWORD_HASH no Railway.
@@ -43,7 +43,10 @@ def login():
             session.permanent = True
             session['logged_in'] = True
             session['usuario'] = usuario
-            return redirect(next_url or url_for('anexos.home'))
+            # Valida next_url para evitar Open Redirect para domínios externos
+            if not next_url or not next_url.startswith('/'):
+                next_url = url_for('anexos.home')
+            return redirect(next_url)
         else:
             error = 'Usuário ou senha incorretos.'
 
