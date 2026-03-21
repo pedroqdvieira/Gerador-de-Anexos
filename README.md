@@ -1,5 +1,4 @@
 # Gerador de Anexos – SEMED
-## Prefeitura de Vila Velha · v0.4.0
 
 Desenvolvido por **Pedro Quinellato Dutra Vieira** com auxílio de **Claude Sonnet 4.6** (Anthropic).
 
@@ -49,10 +48,6 @@ Sistema web para geração automática dos anexos de pagamento de notas fiscais 
 4. O banco de dados `semed.db` é criado na mesma pasta do `.exe`
 
 **Pré-requisito:** Windows 10 64-bit. Em caso de erro `VCRUNTIME140.dll`, instale o [Visual C++ Redistributable 2022 x64](https://aka.ms/vs/17/release/vc_redist.x64.exe).
-
-**Credenciais padrão (altere após o primeiro acesso):**
-- Usuário: `admin`
-- Senha: `Pacu88123`
 
 ---
 
