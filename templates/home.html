@@ -528,8 +528,8 @@ async function carregarDashboard() {
           <span style="color:${cor}">${urgente ? '🔴' : '🟡'}</span>
         </div>
         <div class="alert-info">
-          <div class="alert-contrato">${a.numero}</div>
-          <div class="alert-empresa">${a.empresa}</div>
+          <div class="alert-contrato">${esc(a.numero)}</div>
+          <div class="alert-empresa">${esc(a.empresa)}</div>
         </div>
         <span class="alert-badge" style="background:${bg};color:${cor}">${txt}</span>
       </div>`;
@@ -548,9 +548,9 @@ async function carregarDashboard() {
       const dotC = cancelada ? '#c00' : rascunho ? '#f0a500' : '#0a7a4e';
       const mes  = MESES_ABREV[(n.mes_referencia || 1) - 1];
       return `<div class="nf-item">
-        <div class="nf-num">NF ${n.numero_nf}</div>
+        <div class="nf-num">NF ${esc(n.numero_nf)}</div>
         <div class="nf-info">
-          <div class="nf-contrato">${n.contrato_numero} · ${n.empresa}</div>
+          <div class="nf-contrato">${esc(n.contrato_numero)} · ${esc(n.empresa)}</div>
           <div class="nf-contrato">${mes}/${n.ano_referencia}</div>
         </div>
         <div style="text-align:right">
