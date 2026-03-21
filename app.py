@@ -41,6 +41,10 @@ app.register_blueprint(empresas_bp)
 app.register_blueprint(contratos_bp)
 app.register_blueprint(anexos_bp)
 
+# Garante que as tabelas existem ao iniciar (tanto gunicorn quanto python app.py)
+with app.app_context():
+    init_db()
+
 # ── Rotas simples ─────────────────────────────────────────────────────────────
 @app.route('/')
 def index():
