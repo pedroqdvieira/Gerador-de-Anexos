@@ -97,3 +97,13 @@ document.addEventListener('click', e => {
 window.addEventListener('scroll', () => {
   document.querySelectorAll('.meatball-menu.open').forEach(m => m.classList.remove('open'));
 }, true);
+
+// ── XSS PROTECTION ──
+// Escapa HTML especial antes de inserir dados do banco via innerHTML.
+// Uso: ${esc(valor)} em vez de ${valor} nos template literals JS.
+function esc(str) {
+  if (str == null) return '';
+  const d = document.createElement('div');
+  d.textContent = String(str);
+  return d.innerHTML;
+}
