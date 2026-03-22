@@ -32,11 +32,28 @@ def get_db_path():
 
 # ── Wrapper de cursor que imita sqlite3.Row ──────────────────────────────────
 class PGRow(dict):
-    """Permite acesso por nome (row['campo']) e por atributo (row.campo)."""
+    """Permite acesso por nome (row['campo']), índice (row[0]) e atributo (row.campo)."""
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Guarda lista de valores para acesso por índice numérico
+        self._values_list = list(dict(*args, **kwargs).values()) if args or kwargs else []
+
     def __getitem__(self, key):
+        if isinstance(key, int):
+            try:
+                return self._values_list[key]
+            except IndexError:
+                raise KeyError(key)
         return super().__getitem__(key)
+
     def get(self, key, default=None):
+        if isinstance(key, int):
+            try:
+                return self._values_list[key]
+            except IndexError:
+                return default
         return super().get(key, default)
+
     def keys(self):
         return super().keys()
 
@@ -76,7 +93,11 @@ class PGCursor:
         row = self._cur.fetchone()
         if row is None:
             return None
-        cols = [d[0] for d in self._cur.description]
+        desc = self._cur.description
+        if not desc:
+            # Sem descrição (ex: após INSERT com RETURNING já consumido)
+            return None
+        cols = [d[0] for d in desc]
         return PGRow(zip(cols, row))
 
     def fetchall(self):
