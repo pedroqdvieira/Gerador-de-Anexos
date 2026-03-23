@@ -131,7 +131,10 @@ def gerar_form():
     contratos = db.execute('''SELECT c.id, c.numero, e.razao_social as empresa_nome
         FROM contratos c JOIN empresas e ON c.empresa_id = e.id ORDER BY c.numero''').fetchall()
     db.close()
-    return render_template('gerar_anexos.html', contratos=[dict(c) for c in contratos])
+    rascunho_id = request.args.get('rascunho', '')
+    return render_template('gerar_anexos.html',
+                           contratos=[dict(c) for c in contratos],
+                           rascunho_id=rascunho_id)
 
 @anexos_bp.route('/api/contrato/<int:cid>/dados-formulario')
 def dados_formulario(cid):

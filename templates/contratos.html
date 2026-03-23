@@ -7,24 +7,33 @@
 </div>
 
 <!-- Filtros -->
-<div class="card" style="padding:14px 20px;margin-bottom:12px;">
-  <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
-    <input type="text" id="busca-contratos" placeholder="🔍  Buscar por número, empresa ou objeto…"
-      style="flex:1;min-width:220px;padding:8px 12px;border:1px solid var(--border);border-radius:6px;font-size:14px;"
-      oninput="filtrar()">
-    <select id="filtro-status" onchange="filtrar()" style="padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:14px;">
-      <option value="">Todos os status</option>
-      <option value="vigente">Vigentes</option>
-      <option value="vencendo">Vencendo em 30 dias</option>
-      <option value="vencido">Vencidos</option>
-    </select>
-    <select id="itens-por-pag" onchange="filtrar()" style="padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:14px;">
-      <option value="20">20 por página</option>
-      <option value="50">50 por página</option>
-      <option value="100">100 por página</option>
-      <option value="9999">Todos</option>
-    </select>
-    <span id="contador-contratos" style="color:var(--text-muted);font-size:13px;white-space:nowrap;"></span>
+<div class="card" style="margin-bottom:12px">
+  <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+    <div class="form-group" style="flex:1;min-width:200px;margin:0">
+      <label>Buscar</label>
+      <input type="text" id="busca-contratos" placeholder="Número, empresa ou objeto..." oninput="filtrar()">
+    </div>
+    <div class="form-group" style="min-width:180px;margin:0">
+      <label>Status</label>
+      <select id="filtro-status" onchange="filtrar()">
+        <option value="">Todos os status</option>
+        <option value="vigente">Vigentes</option>
+        <option value="vencendo">Vencendo em 30 dias</option>
+        <option value="vencido">Vencidos</option>
+      </select>
+    </div>
+    <div class="form-group" style="margin:0">
+      <label>Registros por página</label>
+      <select id="itens-por-pag" onchange="filtrar()">
+        <option value="20">20</option>
+        <option value="50">50</option>
+        <option value="100">100</option>
+        <option value="9999">Todos</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:8px;align-items:flex-end">
+      <span id="contador-contratos" style="color:var(--text-muted);font-size:13px;padding-bottom:6px;"></span>
+    </div>
   </div>
 </div>
 
