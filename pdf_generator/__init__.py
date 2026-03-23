@@ -85,9 +85,35 @@ def timbrado_canvas(canvas, doc):
     """Called for each page to draw the timbrado background."""
     canvas.saveState()
     if os.path.exists(TIMBRADO_PATH):
+        # Draw full page background
         canvas.drawImage(TIMBRADO_PATH, 0, 0, width=PAGE_W, height=PAGE_H,
                          preserveAspectRatio=False, mask='auto')
+    # Page number bottom right
+    canvas.setFont('Helvetica', 8)
+    canvas.setFillColor(DARK_GRAY)
+    page_num = canvas.getPageNumber()
+    canvas.drawRightString(PAGE_W - MARGIN_RIGHT, 1.2 * cm,
+                           f'Página {page_num} de {doc._page_count_str}')
     canvas.restoreState()
+
+
+class PageCountCanvas(canvas_module.Canvas):
+    """Canvas that knows total page count."""
+    def __init__(self, *args, **kwargs):
+        canvas_module.Canvas.__init__(self, *args, **kwargs)
+        self._saved_page_states = []
+
+    def showPage(self):
+        self._saved_page_states.append(dict(self.__dict__))
+        self._startPage()
+
+    def save(self):
+        num_pages = len(self._saved_page_states)
+        for state in self._saved_page_states:
+            self.__dict__.update(state)
+            self._doc._page_count_str = str(num_pages)
+            canvas_module.Canvas.showPage(self)
+        canvas_module.Canvas.save(self)
 
 
 def build_doc(story, buffer, on_page=None):
@@ -100,13 +126,15 @@ def build_doc(story, buffer, on_page=None):
         topMargin=MARGIN_TOP,
         bottomMargin=MARGIN_BOTTOM,
     )
+    doc._page_count_str = '?'
 
     def on_page_wrapper(canvas, doc):
         timbrado_canvas(canvas, doc)
         if on_page:
             on_page(canvas, doc)
 
-    doc.build(story, onFirstPage=on_page_wrapper, onLaterPages=on_page_wrapper)
+    doc.build(story, canvasmaker=PageCountCanvas, onFirstPage=on_page_wrapper,
+              onLaterPages=on_page_wrapper)
 
 
 # ─── PORTARIA BOX (top right corner) ────────────────────────────────────────
@@ -537,7 +565,7 @@ def gerar_anexo_ix(dados: dict) -> bytes:
 
     contrato = dados['contrato']
     nf = dados['nf']
-    fiscal = dados['fiscal']
+    gestor = dados['gestor']
     empenhos_usados = dados['empenhos_usados']  # list of dicts
     hoje = date.today().strftime('%d/%m/%Y')
 
@@ -732,9 +760,9 @@ def gerar_anexo_ix(dados: dict) -> bytes:
     story.append(Spacer(1, 1.0 * cm))
 
     # Signature
-    story.append(Paragraph(f'<b>{fiscal["nome"]} – {fiscal["matricula"]}</b>',
+    story.append(Paragraph(f'<b>{gestor["nome"]} – {gestor["matricula"]}</b>',
                             styles['SignatureStyle']))
-    story.append(Paragraph(fiscal.get('titulo', 'Fiscal do Contrato'),
+    story.append(Paragraph(gestor.get('titulo', 'Fiscal do Contrato'),
                             styles['SignatureSubStyle']))
 
     build_doc(story, buffer)
@@ -858,6 +886,11 @@ def gerar_ateste(dados: dict) -> bytes:
         ]))
         story.append(liq_t)
         story.append(Spacer(1, 0.15 * cm))
+        story.append(Spacer(1, 0.5 * cm))
+        story.append(HRFlowable(width=CONTENT_W * 0.4, thickness=0.5, color=BLACK))
+        story.append(Paragraph(
+        '¹ Obrigatório para cada código de fonte/destinação de recurso a que a despesa estiver vinculada.',
+        styles['FootnoteStyle']))
 
     # Document list
     docs = [
@@ -904,13 +937,6 @@ def gerar_ateste(dados: dict) -> bytes:
     story.append(Paragraph(f'<b>{gestor["nome"]} – {gestor["matricula"]}</b>',
                             styles['SignatureStyle']))
     story.append(Paragraph(f'Titulo ({gestor_titulo})', styles['SignatureSubStyle']))
-
-    # Footnote
-    story.append(Spacer(1, 0.5 * cm))
-    story.append(HRFlowable(width=CONTENT_W * 0.4, thickness=0.5, color=BLACK))
-    story.append(Paragraph(
-        '¹ Obrigatório para cada código de fonte/destinação de recurso a que a despesa estiver vinculada.',
-        styles['FootnoteStyle']))
 
     build_doc(story, buffer)
     return buffer.getvalue()
