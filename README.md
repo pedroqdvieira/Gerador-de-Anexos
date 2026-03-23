@@ -114,11 +114,7 @@ O Railway faz deploy automático a cada `git push`.
 
 ```bash
 pip install pyinstaller
-python -m PyInstaller --onefile --noconsole \
-  --add-data "templates;templates" \
-  --add-data "static;static" \
-  --add-data "pdf_generator;pdf_generator" \
-  --name "GeradorAnexos" app.py
+python -m PyInstaller --onefile --noconsole --add-data "templates;templates" --add-data "static;static" --add-data "pdf_generator;pdf_generator"  --name "GeradorAnexos" app.py
 ```
 
 O executável gerado fica em `dist/GeradorAnexos.exe`.
@@ -163,4 +159,4 @@ semed_anexos/
 
 ## Aviso
 
-Protótipo em desenvolvimento ativo. Versão atual: **v0.4.0**. Verifique os documentos gerados antes de uso oficial.
+Protótipo em desenvolvimento ativo. Versão atual: **v0.4.3**. Verifique os documentos gerados antes de uso oficial.
