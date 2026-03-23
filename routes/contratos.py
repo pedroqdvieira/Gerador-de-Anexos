@@ -170,48 +170,60 @@ def atualizar(cid):
              data['gestor_titular_id'], data['gestor_suplente_id'],
              data['fiscal_titular_id'], data['fiscal_suplente_id'], cid))
 
+        # Determinar quais empenhos têm NF associada (para proteção de dados)
         used_emp_ids = {r['empenho_id'] for r in db.execute(
             '''SELECT DISTINCT empenho_id FROM nf_empenhos ne
                JOIN empenhos e ON ne.empenho_id = e.id WHERE e.contrato_id=?''', (cid,)).fetchall()}
-        existing_ids = {r['id'] for r in db.execute('SELECT id FROM empenhos WHERE contrato_id=?', (cid,)).fetchall()}
-        deletable = existing_ids - used_emp_ids
-        if deletable:
-            db.execute(f'DELETE FROM empenhos WHERE id IN ({",".join("?" * len(deletable))})', list(deletable))
+
+        # Deletar empenhos removidos pelo usuário (apenas se não têm NF)
+        empenho_ids_manter = set(data.get('empenho_ids_manter', []))
+        existing_empenhos = {r['id'] for r in db.execute(
+            'SELECT id FROM empenhos WHERE contrato_id=?', (cid,)).fetchall()}
+        empenhos_para_deletar = existing_empenhos - empenho_ids_manter - used_emp_ids
+        
+        if empenhos_para_deletar:
+            placeholders = ','.join('?' * len(empenhos_para_deletar))
+            db.execute(f'DELETE FROM empenhos WHERE id IN ({placeholders})', list(empenhos_para_deletar))
 
         for emp in data.get('empenhos', []):
             if not emp.get('numero') or not emp.get('valor_total'):
                 continue
             eid = emp.get('id')
-            if eid and int(eid) in used_emp_ids:
-                # Log empenho changes (non-financial fields only)
-                ant_emp = db.execute('SELECT * FROM empenhos WHERE id=?', (int(eid),)).fetchone()
-                if ant_emp:
-                    for campo in ['fonte_recurso', 'codigo_aplicacao', 'banco', 'agencia', 'conta_bancaria', 'tipo_operacao']:
-                        registrar_alteracao(db, 'empenhos', int(eid),
-                            CAMPOS_LEGÍVEIS.get(campo, campo),
-                            ant_emp[campo], emp.get(campo, ''))
-                db.execute('''UPDATE empenhos SET fonte_recurso=?, codigo_aplicacao=?,
-                    banco=?, agencia=?, conta_bancaria=?, tipo_operacao=? WHERE id=?''',
-                    (emp.get('fonte_recurso', ''), emp.get('codigo_aplicacao', ''),
-                     emp.get('banco', ''), emp.get('agencia', ''),
-                     emp.get('conta_bancaria', ''), emp.get('tipo_operacao', ''), int(eid)))
-            elif eid and int(eid) in existing_ids:
-                ant_emp = db.execute('SELECT * FROM empenhos WHERE id=?', (int(eid),)).fetchone()
-                if ant_emp:
-                    for campo in ['numero', 'valor_total', 'fonte_recurso', 'codigo_aplicacao',
-                                  'banco', 'agencia', 'conta_bancaria', 'tipo_operacao']:
-                        registrar_alteracao(db, 'empenhos', int(eid),
-                            CAMPOS_LEGÍVEIS.get(campo, campo),
-                            ant_emp[campo], emp.get(campo if campo != 'numero' else 'numero', ''))
-                db.execute('''UPDATE empenhos SET numero=?, valor_total=?, saldo_atual=?,
-                    fonte_recurso=?, codigo_aplicacao=?, banco=?, agencia=?,
-                    conta_bancaria=?, tipo_operacao=? WHERE id=?''',
-                    (emp['numero'].strip(), float(emp['valor_total']),
-                     float(emp.get('saldo_atual', emp['valor_total'])),
-                     emp.get('fonte_recurso', ''), emp.get('codigo_aplicacao', ''),
-                     emp.get('banco', ''), emp.get('agencia', ''),
-                     emp.get('conta_bancaria', ''), emp.get('tipo_operacao', ''), int(eid)))
+            if eid:
+                eid_int = int(eid)
+                if eid_int in used_emp_ids:
+                    # Empenho JÁ TEM NF ASSOCIADA: proteger dados financeiros
+                    # Só permitir editar campos não-financeiros (banco, agencia, etc)
+                    ant_emp = db.execute('SELECT * FROM empenhos WHERE id=?', (eid_int,)).fetchone()
+                    if ant_emp:
+                        for campo in ['fonte_recurso', 'codigo_aplicacao', 'banco', 'agencia', 'conta_bancaria', 'tipo_operacao']:
+                            registrar_alteracao(db, 'empenhos', eid_int,
+                                CAMPOS_LEGÍVEIS.get(campo, campo),
+                                ant_emp[campo], emp.get(campo, ''))
+                    db.execute('''UPDATE empenhos SET fonte_recurso=?, codigo_aplicacao=?,
+                        banco=?, agencia=?, conta_bancaria=?, tipo_operacao=? WHERE id=?''',
+                        (emp.get('fonte_recurso', ''), emp.get('codigo_aplicacao', ''),
+                         emp.get('banco', ''), emp.get('agencia', ''),
+                         emp.get('conta_bancaria', ''), emp.get('tipo_operacao', ''), eid_int))
+                else:
+                    # Empenho SEM NF: permitir edição completa
+                    ant_emp = db.execute('SELECT * FROM empenhos WHERE id=?', (eid_int,)).fetchone()
+                    if ant_emp:
+                        for campo in ['numero', 'valor_total', 'fonte_recurso', 'codigo_aplicacao',
+                                      'banco', 'agencia', 'conta_bancaria', 'tipo_operacao']:
+                            registrar_alteracao(db, 'empenhos', eid_int,
+                                CAMPOS_LEGÍVEIS.get(campo, campo),
+                                ant_emp[campo], emp.get(campo if campo != 'numero' else 'numero', ''))
+                    db.execute('''UPDATE empenhos SET numero=?, valor_total=?, saldo_atual=?,
+                        fonte_recurso=?, codigo_aplicacao=?, banco=?, agencia=?,
+                        conta_bancaria=?, tipo_operacao=? WHERE id=?''',
+                        (emp['numero'].strip(), float(emp['valor_total']),
+                         float(emp.get('saldo_atual', emp['valor_total'])),
+                         emp.get('fonte_recurso', ''), emp.get('codigo_aplicacao', ''),
+                         emp.get('banco', ''), emp.get('agencia', ''),
+                         emp.get('conta_bancaria', ''), emp.get('tipo_operacao', ''), eid_int))
             else:
+                # Novo empenho
                 db.execute('''INSERT INTO empenhos
                     (contrato_id, numero, valor_total, saldo_atual, fonte_recurso,
                      codigo_aplicacao, banco, agencia, conta_bancaria, tipo_operacao)
@@ -319,3 +331,17 @@ def get_empenho(eid):
     if not emp:
         return jsonify({'error': 'Empenho não encontrado'}), 404
     return jsonify(dict(emp))
+
+@contratos_bp.route('/api/empenhos/<int:eid>', methods=['DELETE'])
+def deletar_empenho(eid):
+    db = get_db()
+    # Verifica se empenho tem NF associada
+    nf_emp = db.execute(
+        'SELECT COUNT(*) as cnt FROM nf_empenhos WHERE empenho_id=?', (eid,)).fetchone()
+    if nf_emp and nf_emp['cnt'] > 0:
+        db.close()
+        return jsonify({'error': 'Não é possível deletar empenho que possui notas fiscais associadas'}), 400
+    db.execute('DELETE FROM empenhos WHERE id=?', (eid,))
+    db.commit()
+    db.close()
+    return jsonify({'ok': True})
