@@ -85,35 +85,9 @@ def timbrado_canvas(canvas, doc):
     """Called for each page to draw the timbrado background."""
     canvas.saveState()
     if os.path.exists(TIMBRADO_PATH):
-        # Draw full page background
         canvas.drawImage(TIMBRADO_PATH, 0, 0, width=PAGE_W, height=PAGE_H,
                          preserveAspectRatio=False, mask='auto')
-    # Page number bottom right
-    canvas.setFont('Helvetica', 8)
-    canvas.setFillColor(DARK_GRAY)
-    page_num = canvas.getPageNumber()
-    canvas.drawRightString(PAGE_W - MARGIN_RIGHT, 1.2 * cm,
-                           f'Página {page_num} de {doc._page_count_str}')
     canvas.restoreState()
-
-
-class PageCountCanvas(canvas_module.Canvas):
-    """Canvas that knows total page count."""
-    def __init__(self, *args, **kwargs):
-        canvas_module.Canvas.__init__(self, *args, **kwargs)
-        self._saved_page_states = []
-
-    def showPage(self):
-        self._saved_page_states.append(dict(self.__dict__))
-        self._startPage()
-
-    def save(self):
-        num_pages = len(self._saved_page_states)
-        for state in self._saved_page_states:
-            self.__dict__.update(state)
-            self._doc._page_count_str = str(num_pages)
-            canvas_module.Canvas.showPage(self)
-        canvas_module.Canvas.save(self)
 
 
 def build_doc(story, buffer, on_page=None):
@@ -126,15 +100,13 @@ def build_doc(story, buffer, on_page=None):
         topMargin=MARGIN_TOP,
         bottomMargin=MARGIN_BOTTOM,
     )
-    doc._page_count_str = '?'
 
     def on_page_wrapper(canvas, doc):
         timbrado_canvas(canvas, doc)
         if on_page:
             on_page(canvas, doc)
 
-    doc.build(story, canvasmaker=PageCountCanvas, onFirstPage=on_page_wrapper,
-              onLaterPages=on_page_wrapper)
+    doc.build(story, onFirstPage=on_page_wrapper, onLaterPages=on_page_wrapper)
 
 
 # ─── PORTARIA BOX (top right corner) ────────────────────────────────────────
@@ -656,9 +628,9 @@ def gerar_anexo_ix(dados: dict) -> bytes:
     # pois as células são mescladas verticalmente no original
     num_empenhos = len(empenhos_usados)
     for idx, emp in enumerate(empenhos_usados):
-        saldo_antes = emp['saldo_anterior']
-        valor_usado = emp['valor_usado']
-        saldo_depois = saldo_antes - valor_usado
+        saldo_antes = emp['saldo_anterior']  # Saldo disponível no momento da medição
+        valor_usado = emp['valor_usado']  # Valor usado neste pagamento
+        saldo_depois = saldo_antes - valor_usado  # Saldo após este pagamento
 
         # Medição, mês/ano, NF e valor da NF só aparecem na primeira linha do grupo
         if idx == 0:
