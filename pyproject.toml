@@ -1,6 +1,6 @@
 [project]
 name = "gerador-anexos"
-version = "0.4.0"
+version = "0.4.3"
 description = "Sistema de geração de anexos de pagamento de notas fiscais – SEMED Vila Velha"
 authors = [{ name = "Pedro Quinellato Dutra Vieira" }]
 readme = "README.md"
@@ -22,6 +22,9 @@ dev = [
 
 [tool.project]
 changelog = """
+0.4.3 - Bugfix
+0.4.2 - Bugfix
+0.4.1 - Bugfix
 0.4.0 – Hospedagem Railway + PostgreSQL + Home dashboard + Login + Manual
 0.3.0 – Meatball menus, ZIP de PDFs, datas dd/mm/yyyy, importador API
 0.2.0 – Histórico paginado, relatório de empenhos, exportação CSV
