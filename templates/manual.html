@@ -2,30 +2,175 @@
 {% block title %}Manual do Usuário – Gerador de Anexos{% endblock %}
 {% block content %}
 <div class="page-header">
-  <div><h1>Manual do Usuário</h1><p>Guia completo de uso do Gerador de Anexos</p></div>
+  <div>
+    <h1>Manual do Usuário</h1>
+    <p>Guia completo de uso do Gerador de Anexos</p>
+  </div>
 </div>
 
 <style>
-.manual-wrap { max-width: 820px; }
-.manual-toc { background: #f4f7ff; border: 1.5px solid #e0e8ff; border-radius: 12px; padding: 20px 24px; margin-bottom: 28px; }
-.manual-toc h3 { font-size: 13px; font-weight: 700; color: #003087; margin: 0 0 12px; text-transform: uppercase; letter-spacing: .4px; }
-.manual-toc ol { margin: 0; padding-left: 18px; }
-.manual-toc li { margin-bottom: 6px; }
-.manual-toc a { color: #0055cc; text-decoration: none; font-size: 13.5px; }
-.manual-toc a:hover { text-decoration: underline; }
-.manual-section { background: #fff; border: 1.5px solid #eef2f8; border-radius: 14px; padding: 28px 32px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,48,135,.04); }
-.manual-section h2 { font-size: 17px; font-weight: 800; color: #003087; margin: 0 0 6px; display: flex; align-items: center; gap: 10px; }
-.manual-section h2 .sec-num { background: #003087; color: #fff; border-radius: 8px; width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
-.manual-section h3 { font-size: 14px; font-weight: 700; color: #0d1b3e; margin: 20px 0 8px; }
-.manual-section p { font-size: 14px; color: #444; line-height: 1.7; margin: 0 0 10px; }
-.manual-section ul, .manual-section ol { font-size: 14px; color: #444; line-height: 1.8; margin: 0 0 10px; padding-left: 20px; }
-.tip-box { background: #e8f9f0; border-left: 4px solid #0a7a4e; border-radius: 0 8px 8px 0; padding: 12px 16px; margin: 12px 0; font-size: 13.5px; color: #0a7a4e; }
-.warn-box { background: #fff8e8; border-left: 4px solid #f0a500; border-radius: 0 8px 8px 0; padding: 12px 16px; margin: 12px 0; font-size: 13.5px; color: #b07800; }
-.step-list { counter-reset: step; list-style: none; padding: 0; }
-.step-list li { counter-increment: step; padding: 10px 0 10px 44px; position: relative; border-bottom: 1px solid #f0f4fb; font-size: 14px; color: #333; line-height: 1.6; }
-.step-list li:last-child { border-bottom: none; }
-.step-list li::before { content: counter(step); position: absolute; left: 0; top: 10px; width: 28px; height: 28px; background: #003087; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; }
-.kbd { display: inline-block; background: #f0f4fb; border: 1px solid #ccd5e8; border-radius: 5px; padding: 2px 7px; font-size: 12px; font-family: monospace; color: #003087; }
+  .manual-wrap {
+    max-width: 820px;
+  }
+
+  .manual-toc {
+    background: #f4f7ff;
+    border: 1.5px solid #e0e8ff;
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 28px;
+  }
+
+  .manual-toc h3 {
+    font-size: 13px;
+    font-weight: 700;
+    color: #003087;
+    margin: 0 0 12px;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+  }
+
+  .manual-toc ol {
+    margin: 0;
+    padding-left: 18px;
+  }
+
+  .manual-toc li {
+    margin-bottom: 6px;
+  }
+
+  .manual-toc a {
+    color: #0055cc;
+    text-decoration: none;
+    font-size: 13.5px;
+  }
+
+  .manual-toc a:hover {
+    text-decoration: underline;
+  }
+
+  .manual-section {
+    background: #fff;
+    border: 1.5px solid #eef2f8;
+    border-radius: 14px;
+    padding: 28px 32px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0, 48, 135, .04);
+  }
+
+  .manual-section h2 {
+    font-size: 17px;
+    font-weight: 800;
+    color: #003087;
+    margin: 0 0 6px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .manual-section h2 .sec-num {
+    background: #003087;
+    color: #fff;
+    border-radius: 8px;
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+
+  .manual-section h3 {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0d1b3e;
+    margin: 20px 0 8px;
+  }
+
+  .manual-section p {
+    font-size: 14px;
+    color: #444;
+    line-height: 1.7;
+    margin: 0 0 10px;
+  }
+
+  .manual-section ul,
+  .manual-section ol {
+    font-size: 14px;
+    color: #444;
+    line-height: 1.8;
+    margin: 0 0 10px;
+    padding-left: 20px;
+  }
+
+  .tip-box {
+    background: #e8f9f0;
+    border-left: 4px solid #0a7a4e;
+    border-radius: 0 8px 8px 0;
+    padding: 12px 16px;
+    margin: 12px 0;
+    font-size: 13.5px;
+    color: #0a7a4e;
+  }
+
+  .warn-box {
+    background: #fff8e8;
+    border-left: 4px solid #f0a500;
+    border-radius: 0 8px 8px 0;
+    padding: 12px 16px;
+    margin: 12px 0;
+    font-size: 13.5px;
+    color: #b07800;
+  }
+
+  .step-list {
+    counter-reset: step;
+    list-style: none;
+    padding: 0;
+  }
+
+  .step-list li {
+    counter-increment: step;
+    padding: 10px 0 10px 44px;
+    position: relative;
+    border-bottom: 1px solid #f0f4fb;
+    font-size: 14px;
+    color: #333;
+    line-height: 1.6;
+  }
+
+  .step-list li:last-child {
+    border-bottom: none;
+  }
+
+  .step-list li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0;
+    top: 10px;
+    width: 28px;
+    height: 28px;
+    background: #003087;
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .kbd {
+    display: inline-block;
+    background: #f0f4fb;
+    border: 1px solid #ccd5e8;
+    border-radius: 5px;
+    padding: 2px 7px;
+    font-size: 12px;
+    font-family: monospace;
+    color: #003087;
+  }
 </style>
 
 <div class="manual-wrap">
@@ -47,7 +192,9 @@
   <!-- 1 -->
   <div class="manual-section" id="visao-geral">
     <h2><span class="sec-num">1</span> Visão Geral do Sistema</h2>
-    <p>O Gerador de Anexos é um sistema desenvolvido para a SEMED – Secretaria Municipal de Educação de Vila Velha. Seu objetivo é automatizar a geração dos documentos obrigatórios no processo de pagamento de notas fiscais de contratos municipais.</p>
+    <p>O Gerador de Anexos é um sistema desenvolvido para a SEMED – Secretaria Municipal de Educação de Vila Velha. Seu
+      objetivo é automatizar a geração dos documentos obrigatórios no processo de pagamento de notas fiscais de
+      contratos municipais.</p>
     <p>O sistema gera automaticamente quatro documentos em PDF:</p>
     <ul>
       <li><strong>Anexo III</strong> – Registro de ocorrências na execução do contrato</li>
@@ -55,9 +202,11 @@
       <li><strong>Anexo IX</strong> – Planilha de medição e controle de saldo de empenho</li>
       <li><strong>Ateste</strong> – Documento de ateste do fiscal do contrato (Decreto nº 157/2025)</li>
     </ul>
-    <div class="tip-box">💡 Todos os documentos são gerados com o papel timbrado da Prefeitura de Vila Velha automaticamente.</div>
+    <div class="tip-box">💡 Todos os documentos são gerados com o papel timbrado da Prefeitura de Vila Velha
+      automaticamente.</div>
     <h3>Navegação</h3>
-    <p>O menu superior dá acesso a todas as seções. A <strong>Home</strong> exibe um painel com resumo dos contratos e empenhos. As demais seções são: Gerar Anexos, Histórico, Contratos, Empresas e Pessoas.</p>
+    <p>O menu superior dá acesso a todas as seções. A <strong>Home</strong> exibe um painel com resumo dos contratos e
+      empenhos. As demais seções são: Gerar Anexos, Histórico, Contratos, Empresas e Pessoas.</p>
   </div>
 
   <!-- 2 -->
@@ -65,20 +214,27 @@
     <h2><span class="sec-num">2</span> Primeiros Passos</h2>
     <p>Antes de gerar qualquer anexo, você precisa cadastrar os dados básicos do contrato. Siga esta ordem:</p>
     <ol class="step-list">
-      <li>Acesse <strong>Pessoas</strong> e cadastre todos os gestores e fiscais que assinarão os documentos. Você precisará do nome completo e da matrícula de cada um.</li>
-      <li>Acesse <strong>Empresas</strong> e cadastre a empresa contratada com CNPJ, dados de endereço e dados bancários (banco, agência e conta).</li>
-      <li>Acesse <strong>Contratos</strong> e cadastre o contrato, informando número, objeto, vigência, processo, preposto e os quatro responsáveis (gestor titular, gestor suplente, fiscal titular e fiscal suplente). Adicione também os empenhos vinculados ao contrato.</li>
+      <li>Acesse <strong>Pessoas</strong> e cadastre todos os gestores e fiscais que assinarão os documentos. Você
+        precisará do nome completo e da matrícula de cada um.</li>
+      <li>Acesse <strong>Empresas</strong> e cadastre a empresa contratada com CNPJ, dados de endereço e dados bancários
+        (banco, agência e conta).</li>
+      <li>Acesse <strong>Contratos</strong> e cadastre o contrato, informando número, objeto, vigência, processo,
+        preposto e os quatro responsáveis (gestor titular, gestor suplente, fiscal titular e fiscal suplente). Adicione
+        também os empenhos vinculados ao contrato.</li>
       <li>Com o contrato cadastrado, acesse <strong>Gerar Anexos</strong> para registrar uma nota fiscal.</li>
     </ol>
-    <div class="warn-box">⚠ Uma pessoa não pode ocupar dois papéis no mesmo contrato. O sistema bloqueia essa situação automaticamente.</div>
+    <div class="warn-box">⚠ Uma pessoa não pode ocupar dois papéis no mesmo contrato. O sistema bloqueia essa situação
+      automaticamente.</div>
   </div>
 
   <!-- 3 -->
   <div class="manual-section" id="contratos">
     <h2><span class="sec-num">3</span> Contratos e Empenhos</h2>
     <h3>Cadastrando um contrato</h3>
-    <p>Clique em <strong>+ Novo Contrato</strong>. Preencha todos os campos obrigatórios (marcados com *). O número do contrato deve estar no formato <span class="kbd">NNN/AAAA</span> (ex: 112/2025).</p>
-    <p>Cada contrato pode ter um ou mais empenhos. Clique em <strong>+ Empenho</strong> para adicionar. O saldo atual é preenchido automaticamente com o valor total na criação, mas pode ser ajustado manualmente se necessário.</p>
+    <p>Clique em <strong>+ Novo Contrato</strong>. Preencha todos os campos obrigatórios (marcados com *). O número do
+      contrato deve estar no formato <span class="kbd">NNN/AAAA</span> (ex: 112/2025).</p>
+    <p>Cada contrato pode ter um ou mais empenhos. Clique em <strong>+ Empenho</strong> para adicionar. O saldo atual é
+      preenchido automaticamente com o valor total na criação, mas pode ser ajustado manualmente se necessário.</p>
     <h3>Alertas de vencimento</h3>
     <p>Na listagem de contratos, cada linha tem um indicador de status na borda esquerda:</p>
     <ul>
@@ -88,9 +244,12 @@
     </ul>
     <p>Passe o mouse sobre o badge de status para ver a data exata de vencimento.</p>
     <h3>Prorrogando a vigência</h3>
-    <p>Clique no menu <span class="kbd">···</span> do contrato e selecione <strong>Prorrogar vigência</strong>. Informe a nova data e o motivo (número do Termo Aditivo, por exemplo). O histórico de prorrogações fica registrado automaticamente.</p>
+    <p>Clique no menu <span class="kbd">···</span> do contrato e selecione <strong>Prorrogar vigência</strong>. Informe
+      a nova data e o motivo (número do Termo Aditivo, por exemplo). O histórico de prorrogações fica registrado
+      automaticamente.</p>
     <h3>Relatório de empenhos</h3>
-    <p>O menu <span class="kbd">···</span> também oferece <strong>Relatório de empenhos</strong>, que mostra todo o histórico de uso de cada empenho com as NFs vinculadas. Pode ser exportado em CSV.</p>
+    <p>O menu <span class="kbd">···</span> também oferece <strong>Relatório de empenhos</strong>, que mostra todo o
+      histórico de uso de cada empenho com as NFs vinculadas. Pode ser exportado em CSV.</p>
   </div>
 
   <!-- 4 -->
@@ -98,19 +257,29 @@
     <h2><span class="sec-num">4</span> Gerar Anexos de Pagamento</h2>
     <p>Esta é a função principal do sistema. Acesse pelo menu <strong>Gerar Anexos</strong> ou pelo botão na Home.</p>
     <ol class="step-list">
-      <li><strong>Selecione o contrato.</strong> Os dados da empresa, empenhos e responsáveis são carregados automaticamente.</li>
-      <li><strong>Preencha as informações da NF:</strong> número da nota fiscal, valor, período de referência, número da medição, gestor/fiscal que assinará e como a documentação foi recebida.</li>
-      <li><strong>Distribua o valor nos empenhos.</strong> O total informado nos empenhos deve ser igual ao valor da NF. O sistema valida em tempo real e bloqueia se o saldo for insuficiente.</li>
-      <li><strong>Preencha o Anexo III</strong> (ocorrências). Se não houve ocorrências, apenas marque "Não" e avance.</li>
-      <li><strong>Preencha o Anexo VI</strong> (checklist). Marque cada item como Sim, Não ou N/A conforme a situação da documentação.</li>
-      <li><strong>Revise</strong> e clique em <strong>Confirmar e Gerar PDFs</strong>. O saldo dos empenhos é descontado neste momento.</li>
+      <li><strong>Selecione o contrato.</strong> Os dados da empresa, empenhos e responsáveis são carregados
+        automaticamente.</li>
+      <li><strong>Preencha as informações da NF:</strong> número da nota fiscal, valor, período de referência, número da
+        medição, gestor/fiscal que assinará e como a documentação foi recebida.</li>
+      <li><strong>Distribua o valor nos empenhos.</strong> O total informado nos empenhos deve ser igual ao valor da NF.
+        O sistema valida em tempo real e bloqueia se o saldo for insuficiente.</li>
+      <li><strong>Preencha o Anexo III</strong> (ocorrências). Se não houve ocorrências, apenas marque "Não" e avance.
+      </li>
+      <li><strong>Preencha o Anexo VI</strong> (checklist). Marque cada item como Sim, Não ou N/A conforme a situação da
+        documentação.</li>
+      <li><strong>Revise</strong> e clique em <strong>Confirmar e Gerar PDFs</strong>. O saldo dos empenhos é descontado
+        neste momento.</li>
     </ol>
-    <div class="tip-box">💡 Você pode salvar um <strong>rascunho</strong> antes de confirmar. O rascunho não desconta o saldo do empenho — isso só acontece na confirmação.</div>
+    <div class="tip-box">💡 Você pode salvar um <strong>rascunho</strong> antes de confirmar. O rascunho não desconta o
+      saldo do empenho — isso só acontece na confirmação.</div>
     <h3>Baixando os PDFs</h3>
-    <p>Após confirmar, o sistema exibe os links de download no Histórico. Você pode baixar cada anexo individualmente ou todos de uma vez em um arquivo <span class="kbd">.zip</span> com os 4 PDFs separados.</p>
+    <p>Após confirmar, o sistema exibe os links de download no Histórico. Você pode baixar cada anexo individualmente ou
+      todos de uma vez em um arquivo <span class="kbd">.zip</span> com os 4 PDFs separados.</p>
     <h3>Cancelando uma NF</h3>
-    <p>No Histórico, clique no menu <span class="kbd">···</span> da NF e selecione <strong>Cancelar NF</strong>. O saldo dos empenhos é restaurado automaticamente. NFs canceladas ficam visíveis no histórico marcadas em vermelho.</p>
-    <div class="warn-box">⚠ O cancelamento é irreversível. Uma NF cancelada não pode ser reativada — você precisaria gerar uma nova.</div>
+    <p>No Histórico, clique no menu <span class="kbd">···</span> da NF e selecione <strong>Cancelar NF</strong>. O saldo
+      dos empenhos é restaurado automaticamente. NFs canceladas ficam visíveis no histórico marcadas em vermelho.</p>
+    <div class="warn-box">⚠ O cancelamento é irreversível. Uma NF cancelada não pode ser reativada — você precisaria
+      gerar uma nova.</div>
   </div>
 
   <!-- 5 -->
@@ -118,40 +287,58 @@
     <h2><span class="sec-num">5</span> Histórico de Pagamentos</h2>
     <p>O Histórico exibe todas as NFs registradas no sistema, com busca e filtros.</p>
     <h3>Filtrando</h3>
-    <p>Use o campo de busca para encontrar NFs por qualquer campo (número do contrato, empresa, número da NF, número da medição ou data). Você também pode filtrar por contrato específico usando o seletor.</p>
+    <p>Use o campo de busca para encontrar NFs por qualquer campo (número do contrato, empresa, número da NF, número da
+      medição ou data). Você também pode filtrar por contrato específico usando o seletor.</p>
     <h3>Paginação</h3>
-    <p>Escolha quantos registros ver por página (5, 10, 20, 50, 100 ou Todos). Use os botões de navegação ou clique diretamente no número da página.</p>
+    <p>Escolha quantos registros ver por página (5, 10, 20, 50, 100 ou Todos). Use os botões de navegação ou clique
+      diretamente no número da página.</p>
     <h3>Exportando</h3>
-    <p>Clique em <strong>Exportar CSV</strong> para baixar o histórico em formato compatível com Excel. Se um contrato estiver selecionado no filtro, o CSV será exportado apenas para aquele contrato.</p>
+    <p>Clique em <strong>Exportar CSV</strong> para baixar o histórico em formato compatível com Excel. Se um contrato
+      estiver selecionado no filtro, o CSV será exportado apenas para aquele contrato.</p>
   </div>
 
   <!-- 6 -->
   <div class="manual-section" id="empresas-pessoas">
     <h2><span class="sec-num">6</span> Empresas e Pessoas</h2>
     <h3>Empresas</h3>
-    <p>Cadastre aqui as empresas contratadas. O CNPJ é validado automaticamente com o algoritmo da Receita Federal — CNPJs inválidos são rejeitados. Os dados bancários (banco, agência e conta) informados aqui são usados como padrão, mas podem ser sobrescritos em cada empenho.</p>
+    <p>Cadastre aqui as empresas contratadas. O CNPJ é validado automaticamente com o algoritmo da Receita Federal, onde
+      CNPJs inválidos são rejeitados. Os dados bancários (banco, agência e conta) informados aqui são usados como
+      padrão, mas podem ser sobrescritos em cada empenho.</p>
     <h3>Pessoas</h3>
-    <p>Cadastre gestores e fiscais com nome completo e matrícula. A matrícula deve ser única — o sistema bloqueia duplicatas. Uma vez vinculada a contratos e NFs, uma pessoa não pode ser excluída sem antes remover os vínculos.</p>
-    <div class="tip-box">💡 Use o menu <span class="kbd">···</span> em qualquer linha para editar ou excluir o registro.</div>
+    <p>Cadastre gestores e fiscais com nome completo e matrícula. A matrícula deve ser única pois o sistema bloqueia
+      duplicatas. Uma vez vinculada a contratos e NFs, uma pessoa não pode ser excluída sem antes remover os vínculos.
+    </p>
+    <div class="tip-box">💡 Use o menu <span class="kbd">···</span> em qualquer linha para editar ou excluir o registro.
+    </div>
   </div>
 
   <!-- 7 -->
   <div class="manual-section" id="duvidas">
     <h2><span class="sec-num">7</span> Dúvidas Frequentes</h2>
     <h3>O sistema avisou "saldo insuficiente" — o que fazer?</h3>
-    <p>Significa que o valor que você tentou lançar no empenho é maior do que o saldo disponível. Verifique o saldo atual no relatório de empenhos do contrato. Se o empenho foi reforçado, edite o contrato e atualize o saldo manualmente.</p>
+    <p>Significa que o valor que você tentou lançar no empenho é maior do que o saldo disponível. Verifique o saldo
+      atual no relatório de empenhos do contrato. Se o empenho foi reforçado, edite o contrato e atualize o saldo
+      manualmente.</p>
     <h3>Posso usar o mesmo empenho em mais de uma NF?</h3>
-    <p>Sim. O saldo é descontado a cada confirmação. O Anexo IX mostra o histórico completo de todas as NFs vinculadas ao empenho.</p>
+    <p>Sim. O saldo é descontado a cada confirmação. O Anexo IX mostra o histórico completo de todas as NFs vinculadas
+      ao empenho.</p>
     <h3>O gestor suplente precisa assinar — como faço?</h3>
-    <p>Na tela de geração, no campo "Gestor", selecione o suplente em vez do titular. O Ateste será gerado com o título "Gestor Suplente do Contrato" automaticamente.</p>
+    <p>Na tela de geração, no campo "Gestor", selecione o suplente em vez do titular. O Ateste será gerado com o título
+      "Gestor Suplente do Contrato" automaticamente.</p>
     <h3>Posso alterar uma NF já confirmada?</h3>
     <p>Não diretamente. Cancele a NF atual (o saldo é restaurado) e gere uma nova com os dados corretos.</p>
-    <h3>O PDF saiu sem o papel timbrado.</h3>
-    <p>Verifique se o arquivo <span class="kbd">static/img/papelTimbrado.png</span> está na pasta correta do sistema. Ele precisa estar presente para o timbrado aparecer nos PDFs.</p>
+    <h3>(dev)O PDF saiu sem o papel timbrado.</h3>
+    <p>Verifique se o arquivo <span class="kbd">static/img/papelTimbrado.png</span> está na pasta correta do sistema.
+      Ele precisa estar presente para o timbrado aparecer nos PDFs.</p>
     <h3>O número da medição tem algum formato obrigatório?</h3>
-    <p>Não, mas o padrão recomendado é <span class="kbd">MM/AAAA</span> (ex: 03/2026). O sistema sugere automaticamente com base no mês de referência informado.</p>
-    <h3>Como importar contratos da API da Prefeitura?</h3>
-    <p>Rode o script <span class="kbd">importar_api.py</span> na pasta do projeto. Ele consulta a API de Transparência de Vila Velha, lista os contratos da SEMED e permite selecionar quais importar. Dados não fornecidos pela API (gestores, empenhos, dados bancários) precisam ser completados manualmente depois.</p>
+    <p>Não, mas o padrão recomendado é <span class="kbd">MM/AAAA</span> (ex: 03/2026). O sistema sugere automaticamente
+      com base no mês de referência informado.</p>
+    <h3>(dev)Como importar contratos da API da Prefeitura?</h3>
+    <p>Rode o script <span class="kbd">importar_api.py</span> na pasta do projeto. Ele consulta a API de Transparência
+      de Vila Velha, lista os contratos da SEMED e permite selecionar quais importar. Dados não fornecidos pela API
+      (gestores, empenhos, dados bancários) precisam ser completados manualmente depois. É necessário sincronizar o
+      banco de dados local com o banco do Railway (push na main do projeto no github não funciona pois o railway está
+      usando um banco de dados PostgreSQL próprio).</p>
   </div>
 
 </div>
