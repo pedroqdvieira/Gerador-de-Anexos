@@ -108,6 +108,10 @@ function renderTabela() {
           <a href="/api/nf/${n.id}/pdf/anexo_ix" class="meatball-item" target="_blank">Anexo IX</a>
           <div class="meatball-sep"></div>`;
       }
+      if (!n.data_geracao && !n.cancelada) {
+        menuItems += `<a href="/gerar-anexos?rascunho=${n.id}" class="meatball-item">Continuar rascunho</a>`;
+        menuItems += `<div class="meatball-sep"></div>`;
+      }
       if (!n.cancelada) {
         menuItems += `<button class="meatball-item danger" onclick="closeAllMenus();cancelarNF(${n.id})">Cancelar NF</button>`;
       }

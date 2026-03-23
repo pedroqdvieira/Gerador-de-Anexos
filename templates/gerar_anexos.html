@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Gerar Anexos – SEMED{% endblock %}
 {% block content %}
+<input type="hidden" id="rascunho-id-param" value="{{ rascunho_id }}">
 <div class="page-header">
  <h1> Gerar Anexos de Pagamento</h1>
  <p>Preencha as informações para gerar os documentos</p>
@@ -485,7 +486,20 @@ function validarStep1() {
 // ── CHECKLIST BUILD ──
 function buildChecklist() {
  const container = document.getElementById('checklist-container');
- if (container.children.length > 0) return;
+ if (container.children.length > 0) {
+   // Se há checklist de rascunho pendente, aplica agora
+   if (window._rascunhoChecklist) {
+     try {
+       const ck = JSON.parse(window._rascunhoChecklist);
+       Object.entries(ck).forEach(([k, v]) => {
+         const el = document.querySelector(`input[name="cl-${k}"][value="${v}"]`);
+         if (el) el.checked = true;
+       });
+     } catch(_) {}
+     window._rascunhoChecklist = null;
+   }
+   return;
+ }
  let html = '';
  CHECKLIST_ITEMS.forEach(item => {
  if (item.section) {
@@ -509,6 +523,17 @@ function buildChecklist() {
  }
  });
  container.innerHTML = html;
+ // Aplica checklist de rascunho se disponível
+ if (window._rascunhoChecklist) {
+   try {
+     const ck = JSON.parse(window._rascunhoChecklist);
+     Object.entries(ck).forEach(([k, v]) => {
+       const el = document.querySelector(`input[name="cl-${k}"][value="${v}"]`);
+       if (el) el.checked = true;
+     });
+   } catch(_) {}
+   window._rascunhoChecklist = null;
+ }
 }
 
 function coletarChecklist() {
@@ -694,54 +719,81 @@ async function continuarRascunho(id) {
   try {
     const lista = await apiFetch('/api/rascunhos');
     const r = lista.find(x => x.id === id);
-    if (!r) return;
+    if (!r) { showToast('Rascunho não encontrado', 'error'); return; }
 
-    // Preenche estado global
     nfId = r.id;
 
-    // Preenche step 1 — seleciona contrato
+    // 1. Seleciona contrato e aguarda carregar gestores/empenhos
     const sel = document.getElementById('sel-contrato');
-    if (sel) { sel.value = r.contrato_id; await selecionarContrato(); }
+    if (sel) {
+      sel.value = r.contrato_id;
+      await carregarContrato();
+    }
 
-    // Preenche step 2 — dados NF
-    const campos = {
-      'nf-numero': r.numero_nf, 'nf-valor': r.valor_nf,
-      'nf-mes': r.mes_referencia, 'nf-ano': r.ano_referencia,
-      'nf-periodo-ini': r.periodo_inicio, 'nf-periodo-fim': r.periodo_fim,
-      'nf-medicao': r.numero_medicao, 'sel-gestor': r.gestor_id,
-      'sel-fiscal': r.fiscal_id, 'sel-meio': r.meio_recebimento,
-      'nf-data-certidoes': r.data_verificacao_certidoes,
+    // 2. Preenche campos do step 1 (IDs reais do formulário)
+    const mapa = {
+      'inp-medicao':  r.numero_medicao,
+      'inp-per-ini':  r.periodo_inicio,
+      'inp-per-fim':  r.periodo_fim,
+      'sel-mes':      r.mes_referencia,
+      'inp-ano':      r.ano_referencia,
+      'inp-nf-num':   r.numero_nf,
+      'inp-nf-val':   r.valor_nf,
+      'sel-meio':     r.meio_recebimento,
     };
-    Object.entries(campos).forEach(([id, val]) => {
-      const el = document.getElementById(id);
+    Object.entries(mapa).forEach(([fid, val]) => {
+      const el = document.getElementById(fid);
       if (el && val !== null && val !== undefined) el.value = val;
     });
 
-    // Ocorrências
-    const chkOcorr = document.getElementById('chk-ocorrencias');
-    if (chkOcorr) { chkOcorr.checked = !!r.houve_ocorrencias; toggleOcorrencias(); }
-    ['nf-ocorr-exec','nf-ocorr-prov','nf-ocorr-res'].forEach((fid,i) => {
-      const vals = [r.ocorrencia_execucao, r.ocorrencia_providencias, r.ocorrencia_resultados];
+    // 3. Selects de gestor/fiscal (dependem de carregarContrato ter rodado)
+    const selGestor = document.getElementById('sel-gestor');
+    const selFiscal = document.getElementById('sel-fiscal');
+    if (selGestor && r.gestor_id) selGestor.value = r.gestor_id;
+    if (selFiscal && r.fiscal_id) selFiscal.value = r.fiscal_id;
+
+    // 4. Empenhos: preenche os valores nos campos já renderizados
+    if (r.empenhos_usados && r.empenhos_usados.length) {
+      r.empenhos_usados.forEach(eu => {
+        const inp = document.querySelector(`.uso-emp-val[data-emp-id="${eu.empenho_id}"]`);
+        if (inp) inp.value = eu.valor_usado;
+      });
+    }
+
+    // 5. Ocorrências (radios, não checkbox)
+    const radioOcorr = document.querySelector(
+      `input[name="ocorrencias"][value="${r.houve_ocorrencias ? 'sim' : 'nao'}"]`);
+    if (radioOcorr) { radioOcorr.checked = true; toggleOcorrencias(!!r.houve_ocorrencias); }
+
+    // 6. Campos de ocorrência (IDs reais: txt-occ-exec etc)
+    const ocorrMap = {
+      'txt-occ-exec': r.ocorrencia_execucao,
+      'txt-occ-prov': r.ocorrencia_providencias,
+      'txt-occ-res':  r.ocorrencia_resultados,
+    };
+    Object.entries(ocorrMap).forEach(([fid, val]) => {
       const el = document.getElementById(fid);
-      if (el) el.value = vals[i]||'';
+      if (el) el.value = val || '';
     });
 
-    // Checklist
-    try {
-      const ck = JSON.parse(r.checklist_json||'{}');
-      Object.entries(ck).forEach(([k,v]) => {
-        const el = document.getElementById(k);
-        if (el && el.type==='checkbox') el.checked = !!v;
-      });
-    } catch(e2) {}
-
-    // Empenhos usados — preenche após ir para step 3
-    window._rascunhoEmpenhos = r.empenhos_usados || [];
+    // 8. Checklist — guarda para aplicar quando step 3 for aberto
+    window._rascunhoChecklist = r.checklist_json || '{}';
 
     document.getElementById('alert-rascunho').style.display = 'block';
-    irParaStep(1);
+
+    // Mostra o step 1 diretamente sem validação
+    for (let i = 1; i <= 4; i++) {
+      const el = document.getElementById(`step-${i}`);
+      if (el) el.style.display = i === 1 ? 'block' : 'none';
+      const ind = document.getElementById(`step-ind-${i}`);
+      if (ind) ind.className = `step ${i === 1 ? 'active' : ''}`;
+    }
+    window.scrollTo(0, 0);
     showToast('Rascunho carregado — confira os dados e continue.', 'success');
-  } catch(e) { showToast('Erro ao carregar rascunho', 'error'); }
+  } catch(e) {
+    console.error('continuarRascunho error:', e);
+    showToast('Erro ao carregar rascunho', 'error');
+  }
 }
 
 async function cancelarRascunho(id) {
@@ -755,6 +807,13 @@ async function cancelarRascunho(id) {
   });
 }
 
-document.addEventListener('DOMContentLoaded', carregarRascunhos);
+document.addEventListener('DOMContentLoaded', async () => {
+  await carregarRascunhos();
+  // Se veio da URL ?rascunho=ID, abre automaticamente
+  const urlRascunho = document.getElementById('rascunho-id-param')?.value;
+  if (urlRascunho) {
+    await continuarRascunho(parseInt(urlRascunho));
+  }
+});
 </script>
 {% endblock %}
