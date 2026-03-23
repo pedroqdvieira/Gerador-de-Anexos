@@ -2,7 +2,10 @@
 {% block title %}Contratos – Gerador de Anexos{% endblock %}
 {% block content %}
 <div class="page-header flex-between">
-  <div><h1>Contratos</h1><p>Gerenciamento de contratos e empenhos</p></div>
+  <div>
+    <h1>Contratos</h1>
+    <p>Gerenciamento de contratos e empenhos</p>
+  </div>
   <button class="btn btn-primary" onclick="abrirModalContrato()">+ Novo Contrato</button>
 </div>
 
@@ -40,13 +43,26 @@
 <div class="card">
   <div class="table-wrapper">
     <table>
-      <thead><tr><th>Contrato</th><th>Empresa</th><th>Vigência</th><th>Empenhos</th><th>Status</th><th>Ações</th></tr></thead>
+      <thead>
+        <tr>
+          <th>Contrato</th>
+          <th>Empresa</th>
+          <th>Vigência</th>
+          <th>Empenhos</th>
+          <th>Status</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
       <tbody id="tbody-contratos">
-        <tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:24px;">Carregando…</td></tr>
+        <tr>
+          <td colspan="6" style="text-align:center;color:var(--text-muted);padding:24px;">Carregando…</td>
+        </tr>
       </tbody>
     </table>
   </div>
-  <div id="paginacao-contratos" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:16px 20px;border-top:1px solid var(--border);flex-wrap:wrap;"></div>
+  <div id="paginacao-contratos"
+    style="display:flex;align-items:center;justify-content:center;gap:8px;padding:16px 20px;border-top:1px solid var(--border);flex-wrap:wrap;">
+  </div>
 </div>
 
 <!-- Modal Contrato -->
@@ -59,9 +75,11 @@
     <input type="hidden" id="c-id">
     <div class="card-title" style="margin-bottom:12px">Dados do Contrato</div>
     <div class="form-grid-2">
-      <div class="form-group"><label>Nº Contrato *</label><input type="text" id="c-numero" placeholder="Ex: 112/2025"></div>
+      <div class="form-group"><label>Nº Contrato *</label><input type="text" id="c-numero" placeholder="Ex: 112/2025">
+      </div>
       <div class="form-group"><label>Empresa Contratada *</label>
-        <select id="c-empresa"><option value="">Selecione...</option>
+        <select id="c-empresa">
+          <option value="">Selecione...</option>
           {% for e in empresas %}<option value="{{ e.id }}">{{ e.razao_social }} – {{ e.cnpj }}</option>{% endfor %}
         </select>
       </div>
@@ -69,27 +87,32 @@
       <div class="form-group"><label>Vigência Fim *</label><input type="date" id="c-vig-fim"></div>
       <div class="form-group"><label>Nº do Processo</label><input type="text" id="c-processo"></div>
       <div class="form-group"><label>Preposto da Empresa</label><input type="text" id="c-preposto"></div>
-      <div class="form-group full-width"><label>Objeto do Contrato *</label><textarea id="c-objeto" rows="2"></textarea></div>
+      <div class="form-group full-width"><label>Objeto do Contrato *</label><textarea id="c-objeto" rows="2"></textarea>
+      </div>
     </div>
     <div class="card-title" style="margin:16px 0 12px">Gestores e Fiscais</div>
     <div class="form-grid-2">
       <div class="form-group"><label>Gestor Titular *</label>
-        <select id="c-gestor-tit"><option value="">Selecione...</option>
+        <select id="c-gestor-tit">
+          <option value="">Selecione...</option>
           {% for p in pessoas %}<option value="{{ p.id }}">{{ p.nome }} – {{ p.matricula }}</option>{% endfor %}
         </select>
       </div>
       <div class="form-group"><label>Gestor Suplente *</label>
-        <select id="c-gestor-sup"><option value="">Selecione...</option>
+        <select id="c-gestor-sup">
+          <option value="">Selecione...</option>
           {% for p in pessoas %}<option value="{{ p.id }}">{{ p.nome }} – {{ p.matricula }}</option>{% endfor %}
         </select>
       </div>
       <div class="form-group"><label>Fiscal Titular *</label>
-        <select id="c-fiscal-tit"><option value="">Selecione...</option>
+        <select id="c-fiscal-tit">
+          <option value="">Selecione...</option>
           {% for p in pessoas %}<option value="{{ p.id }}">{{ p.nome }} – {{ p.matricula }}</option>{% endfor %}
         </select>
       </div>
       <div class="form-group"><label>Fiscal Suplente *</label>
-        <select id="c-fiscal-sup"><option value="">Selecione...</option>
+        <select id="c-fiscal-sup">
+          <option value="">Selecione...</option>
           {% for p in pessoas %}<option value="{{ p.id }}">{{ p.nome }} – {{ p.matricula }}</option>{% endfor %}
         </select>
       </div>
@@ -166,273 +189,302 @@
 
 {% block scripts %}
 <script>
-let _todosContratos = [];
-let _paginaAtual    = 1;
+  let _todosContratos = [];
+  let _paginaAtual = 1;
 
-function closeMenu(id) { document.getElementById(id).classList.remove('open'); }
+  function closeMenu(id) { document.getElementById(id).classList.remove('open'); }
 
-function statusContrato(diasParaVencer) {
-  if (diasParaVencer === null || diasParaVencer === undefined) return 'vigente';
-  if (diasParaVencer < 0)   return 'vencido';
-  if (diasParaVencer <= 30) return 'vencendo';
-  return 'vigente';
-}
-
-async function carregarContratos() {
-  try {
-    _todosContratos = await apiFetch('/api/contratos');
-    filtrar();
-  } catch(e) {
-    document.getElementById('tbody-contratos').innerHTML =
-      '<tr><td colspan="6" style="text-align:center;color:var(--danger)">Erro ao carregar.</td></tr>';
+  function statusContrato(diasParaVencer) {
+    if (diasParaVencer === null || diasParaVencer === undefined) return 'vigente';
+    if (diasParaVencer < 0) return 'vencido';
+    if (diasParaVencer <= 30) return 'vencendo';
+    return 'vigente';
   }
-}
 
-function filtrar() { _paginaAtual = 1; renderizar(); }
+  async function carregarContratos() {
+    try {
+      _todosContratos = await apiFetch('/api/contratos');
+      filtrar();
+    } catch (e) {
+      document.getElementById('tbody-contratos').innerHTML =
+        '<tr><td colspan="6" style="text-align:center;color:var(--danger)">Erro ao carregar.</td></tr>';
+    }
+  }
 
-function renderizar() {
-  const busca    = document.getElementById('busca-contratos').value.toLowerCase().trim();
-  const status   = document.getElementById('filtro-status').value;
-  const itensPag = parseInt(document.getElementById('itens-por-pag').value);
+  function filtrar() { _paginaAtual = 1; renderizar(); }
 
-  let lista = _todosContratos;
-  if (busca) lista = lista.filter(c =>
-    (c.numero||'').toLowerCase().includes(busca) ||
-    (c.empresa_nome||'').toLowerCase().includes(busca) ||
-    (c.objeto||'').toLowerCase().includes(busca));
-  if (status) lista = lista.filter(c => statusContrato(c.dias_para_vencer) === status);
+  function renderizar() {
+    const busca = document.getElementById('busca-contratos').value.toLowerCase().trim();
+    const status = document.getElementById('filtro-status').value;
+    const itensPag = parseInt(document.getElementById('itens-por-pag').value);
 
-  const total  = lista.length;
-  const totPag = itensPag >= 9999 ? 1 : Math.max(1, Math.ceil(total / itensPag));
-  _paginaAtual  = Math.min(_paginaAtual, totPag);
-  const inicio  = itensPag >= 9999 ? 0 : (_paginaAtual - 1) * itensPag;
-  const pagina  = itensPag >= 9999 ? lista : lista.slice(inicio, inicio + itensPag);
+    let lista = _todosContratos;
+    if (busca) lista = lista.filter(c =>
+      (c.numero || '').toLowerCase().includes(busca) ||
+      (c.empresa_nome || '').toLowerCase().includes(busca) ||
+      (c.objeto || '').toLowerCase().includes(busca));
+    if (status) lista = lista.filter(c => statusContrato(c.dias_para_vencer) === status);
 
-  document.getElementById('contador-contratos').textContent =
-    total === _todosContratos.length ? `${total} contrato(s)` : `${total} de ${_todosContratos.length}`;
+    const total = lista.length;
+    const totPag = itensPag >= 9999 ? 1 : Math.max(1, Math.ceil(total / itensPag));
+    _paginaAtual = Math.min(_paginaAtual, totPag);
+    const inicio = itensPag >= 9999 ? 0 : (_paginaAtual - 1) * itensPag;
+    const pagina = itensPag >= 9999 ? lista : lista.slice(inicio, inicio + itensPag);
 
-  const tbody = document.getElementById('tbody-contratos');
-  tbody.innerHTML = pagina.length ? pagina.map(c => {
-    const st    = statusContrato(c.dias_para_vencer);
-    const rowCl = st === 'vencido' ? 'status-vencido' : st === 'vencendo' ? 'status-alerta' : 'status-vigente';
-    let badgeHtml = '';
-    if (st === 'vencido')
-      badgeHtml = `<div class="status-wrap"><span class="badge badge-danger">Vencido</span><div class="status-tooltip">Venceu em ${fmtData(c.vigencia_fim)}</div></div>`;
-    else if (st === 'vencendo')
-      badgeHtml = `<div class="status-wrap"><span class="badge badge-warning">Vence em ${c.dias_para_vencer}d</span><div class="status-tooltip">Vence em ${fmtData(c.vigencia_fim)} (${c.dias_para_vencer} dias)</div></div>`;
-    else
-      badgeHtml = `<div class="status-wrap"><span class="badge badge-success">Vigente</span><div class="status-tooltip">Vigente até ${fmtData(c.vigencia_fim)}</div></div>`;
-    return `
+    document.getElementById('contador-contratos').textContent =
+      total === _todosContratos.length ? `${total} contrato(s)` : `${total} de ${_todosContratos.length}`;
+
+    const tbody = document.getElementById('tbody-contratos');
+    tbody.innerHTML = pagina.length ? pagina.map(c => {
+      const st = statusContrato(c.dias_para_vencer);
+      const rowCl = st === 'vencido' ? 'status-vencido' : st === 'vencendo' ? 'status-alerta' : 'status-vigente';
+      let badgeHtml = '';
+      if (st === 'vencido')
+        badgeHtml = `<div class="status-wrap"><span class="badge badge-danger">Vencido</span><div class="status-tooltip">Venceu em ${fmtData(c.vigencia_fim)}</div></div>`;
+      else if (st === 'vencendo')
+        badgeHtml = `<div class="status-wrap"><span class="badge badge-warning">Vence em ${c.dias_para_vencer}d</span><div class="status-tooltip">Vence em ${fmtData(c.vigencia_fim)} (${c.dias_para_vencer} dias)</div></div>`;
+      else
+        badgeHtml = `<div class="status-wrap"><span class="badge badge-success">Vigente</span><div class="status-tooltip">Vigente até ${fmtData(c.vigencia_fim)}</div></div>`;
+      return `
     <tr class="${rowCl}">
       <td><strong>${esc(c.numero)}</strong></td>
-      <td>${esc(c.empresa_nome||'')}</td>
+      <td>${esc(c.empresa_nome || '')}</td>
       <td>${fmtData(c.vigencia_inicio)} – ${fmtData(c.vigencia_fim)}</td>
-      <td><span class="badge badge-info">${(c.empenhos||[]).length}</span></td>
+      <td><span class="badge badge-info">${(c.empenhos || []).length}</span></td>
       <td>${badgeHtml}</td>
       <td><div class="meatball-wrap">
         <button class="meatball-btn" onclick="toggleMeatball('mb-${c.id}',this)">···</button>
         <div class="meatball-menu" id="mb-${c.id}">
           <button class="meatball-item" onclick="closeMenu('mb-${c.id}');editarContrato(${c.id})">Editar</button>
           <button class="meatball-item" onclick="closeMenu('mb-${c.id}');verEmpenhos(${c.id})">Empenhos</button>
-          <button class="meatball-item" onclick="closeMenu('mb-${c.id}');prorrogarContrato(${c.id},'${esc(c.numero)}','${c.vigencia_fim||''}')">Prorrogar vigência</button>
+          <button class="meatball-item" onclick="closeMenu('mb-${c.id}');prorrogarContrato(${c.id},'${esc(c.numero)}','${c.vigencia_fim || ''}')">Prorrogar vigência</button>
           <button class="meatball-item" onclick="closeMenu('mb-${c.id}');verRelatorio(${c.id})">Relatório de empenhos</button>
           <button class="meatball-item" onclick="closeMenu('mb-${c.id}');verHistoricoAlt(${c.id})">Histórico de alterações</button>
           <div class="meatball-sep"></div>
           <button class="meatball-item danger" onclick="closeMenu('mb-${c.id}');deletarContrato(${c.id})">Excluir</button>
         </div></div></td>
     </tr>`;
-  }).join('') :
-  '<tr><td colspan="6" class="empty-state"><p>Nenhum contrato encontrado.</p></td></tr>';
+    }).join('') :
+      '<tr><td colspan="6" class="empty-state"><p>Nenhum contrato encontrado.</p></td></tr>';
 
-  const pag = document.getElementById('paginacao-contratos');
-  if (totPag <= 1) { pag.innerHTML = ''; return; }
-  let btns = `<button class="btn btn-secondary" style="padding:4px 10px;font-size:13px;" ${_paginaAtual===1?'disabled':''} onclick="irPagina(${_paginaAtual-1})">‹ Ant.</button>`;
-  for (let i=1;i<=totPag;i++) {
-    if (totPag>7 && Math.abs(i-_paginaAtual)>2 && i!==1 && i!==totPag) { if(i===2||i===totPag-1) btns+='<span style="padding:0 4px">…</span>'; continue; }
-    btns += `<button class="btn ${i===_paginaAtual?'btn-primary':'btn-secondary'}" style="padding:4px 10px;font-size:13px;min-width:34px;" onclick="irPagina(${i})">${i}</button>`;
-  }
-  btns += `<button class="btn btn-secondary" style="padding:4px 10px;font-size:13px;" ${_paginaAtual===totPag?'disabled':''} onclick="irPagina(${_paginaAtual+1})">Próx. ›</button>`;
-  pag.innerHTML = btns;
-}
-
-function irPagina(n) { _paginaAtual = n; renderizar(); }
-function fmtData(iso) { if (!iso) return ''; const p=iso.split('-'); return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:iso; }
-
-let empRowCount = 0;
-function addEmpenhoRow(emp={}) {
-  empRowCount++;
-  const idx = empRowCount;
-  const div = document.createElement('div');
-  div.className='empenho-row'; div.id=`emp-row-${idx}`;
-  div.innerHTML=`<div class="row-header"><span>Empenho #${idx}</span><button class="btn btn-danger btn-sm" onclick="document.getElementById('emp-row-${idx}').remove()">Remover</button></div>
-    <input type="hidden" class="emp-db-id" value="${emp.id||''}">
-    <div class="form-grid-3">
-      <div class="form-group"><label>Número *</label><input type="text" class="emp-numero" value="${esc(emp.numero||'')}"></div>
-      <div class="form-group"><label>Valor Total R$ *</label><input type="number" step="0.01" class="emp-valor" value="${emp.valor_total||''}"></div>
-      <div class="form-group"><label>Saldo Atual</label><input type="number" step="0.01" class="emp-saldo" value="${emp.saldo_atual!==undefined?emp.saldo_atual:(emp.valor_total||'')}"></div>
-      <div class="form-group"><label>Fonte/Dest. Recurso</label><input type="text" class="emp-fonte" value="${esc(emp.fonte_recurso||'')}"></div>
-      <div class="form-group"><label>Código de Aplicação</label><input type="text" class="emp-cod-apl" value="${esc(emp.codigo_aplicacao||'')}"></div>
-      <div class="form-group"><label>Banco</label><input type="text" class="emp-banco" value="${esc(emp.banco||'')}"></div>
-      <div class="form-group"><label>Agência</label><input type="text" class="emp-agencia" value="${esc(emp.agencia||'')}"></div>
-      <div class="form-group"><label>Conta Bancária</label><input type="text" class="emp-conta" value="${esc(emp.conta_bancaria||'')}"></div>
-      <div class="form-group"><label>Tipo Operação</label><input type="text" class="emp-tipo-op" value="${esc(emp.tipo_operacao||'')}"></div>
-    </div>`;
-  document.getElementById('empenhos-container').appendChild(div);
-}
-
-function coletarEmpenhos() {
-  return Array.from(document.querySelectorAll('#empenhos-container .empenho-row')).map(row=>({
-    id: row.querySelector('.emp-db-id').value||null,
-    numero: row.querySelector('.emp-numero').value.trim(),
-    valor_total: parseFloat(row.querySelector('.emp-valor').value)||0,
-    saldo_atual: parseFloat(row.querySelector('.emp-saldo').value)||null,
-    fonte_recurso: row.querySelector('.emp-fonte').value.trim(),
-    codigo_aplicacao: row.querySelector('.emp-cod-apl').value.trim(),
-    banco: row.querySelector('.emp-banco').value.trim(),
-    agencia: row.querySelector('.emp-agencia').value.trim(),
-    conta_bancaria: row.querySelector('.emp-conta').value.trim(),
-    tipo_operacao: row.querySelector('.emp-tipo-op').value.trim(),
-  }));
-}
-
-function abrirModalContrato() {
-  document.getElementById('c-id').value='';
-  document.getElementById('contrato-modal-title').textContent='Novo Contrato';
-  ['c-numero','c-processo','c-preposto','c-objeto'].forEach(id=>document.getElementById(id).value='');
-  ['c-vig-ini','c-vig-fim'].forEach(id=>document.getElementById(id).value='');
-  ['c-empresa','c-gestor-tit','c-gestor-sup','c-fiscal-tit','c-fiscal-sup'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('empenhos-container').innerHTML='';
-  empRowCount=0; addEmpenhoRow();
-  openModal('modal-contrato');
-}
-
-async function editarContrato(id) {
-  try {
-    const data = await apiFetch(`/api/contratos/${id}`);
-    document.getElementById('c-id').value=id;
-    document.getElementById('contrato-modal-title').textContent='Editar Contrato';
-    document.getElementById('c-numero').value=data.numero||'';
-    document.getElementById('c-empresa').value=data.empresa_id||'';
-    document.getElementById('c-vig-ini').value=data.vigencia_inicio||'';
-    document.getElementById('c-vig-fim').value=data.vigencia_fim||'';
-    document.getElementById('c-processo').value=data.processo||'';
-    document.getElementById('c-preposto').value=data.preposto||'';
-    document.getElementById('c-objeto').value=data.objeto||'';
-    document.getElementById('c-gestor-tit').value=data.gestor_titular_id||'';
-    document.getElementById('c-gestor-sup').value=data.gestor_suplente_id||'';
-    document.getElementById('c-fiscal-tit').value=data.fiscal_titular_id||'';
-    document.getElementById('c-fiscal-sup').value=data.fiscal_suplente_id||'';
-    document.getElementById('empenhos-container').innerHTML='';
-    empRowCount=0;
-    (data.empenhos||[]).forEach(e=>addEmpenhoRow(e));
-    if(!data.empenhos||!data.empenhos.length) addEmpenhoRow();
-    openModal('modal-contrato');
-  } catch(e){}
-}
-
-async function salvarContrato() {
-  const id=document.getElementById('c-id').value;
-  const body={
-    numero: document.getElementById('c-numero').value.trim(),
-    empresa_id: document.getElementById('c-empresa').value,
-    vigencia_inicio: document.getElementById('c-vig-ini').value,
-    vigencia_fim: document.getElementById('c-vig-fim').value,
-    objeto: document.getElementById('c-objeto').value.trim(),
-    processo: document.getElementById('c-processo').value.trim(),
-    preposto: document.getElementById('c-preposto').value.trim(),
-    gestor_titular_id: document.getElementById('c-gestor-tit').value,
-    gestor_suplente_id: document.getElementById('c-gestor-sup').value,
-    fiscal_titular_id: document.getElementById('c-fiscal-tit').value,
-    fiscal_suplente_id: document.getElementById('c-fiscal-sup').value,
-    empenhos: coletarEmpenhos(),
-  };
-  if(!body.numero||!body.empresa_id||!body.objeto) return showToast('Preencha os campos obrigatórios','error');
-  try {
-    if(id) await apiFetch(`/api/contratos/${id}`,{method:'PUT',body});
-    else   await apiFetch('/api/contratos',{method:'POST',body});
-    showToast('Contrato salvo!','success');
-    closeModal('modal-contrato');
-    await carregarContratos();
-  } catch(e){}
-}
-
-async function verEmpenhos(cid) {
-  try {
-    const data=await apiFetch(`/api/contratos/${cid}`);
-    document.getElementById('emp-view-title').textContent=`Empenhos – Contrato ${data.numero}`;
-    const body=document.getElementById('emp-view-body');
-    if(!data.empenhos||!data.empenhos.length){body.innerHTML='<p class="text-muted">Nenhum empenho cadastrado.</p>';}
-    else{
-      body.innerHTML=`<table><thead><tr><th>Número</th><th>Valor Total</th><th>Saldo Atual</th><th>Utilizado</th></tr></thead>
-      <tbody>${data.empenhos.map(e=>{const usado=e.valor_total-e.saldo_atual;const pct=e.valor_total>0?(usado/e.valor_total*100).toFixed(1):0;
-        return `<tr><td>${esc(e.numero)}</td><td>${formatBRL(e.valor_total)}</td><td><span class="badge ${e.saldo_atual>0?'badge-success':'badge-danger'}">${formatBRL(e.saldo_atual)}</span></td><td>${formatBRL(usado)} (${pct}%)</td></tr>`;
-      }).join('')}</tbody></table>`;
+    const pag = document.getElementById('paginacao-contratos');
+    if (totPag <= 1) { pag.innerHTML = ''; return; }
+    let btns = `<button class="btn btn-secondary" style="padding:4px 10px;font-size:13px;" ${_paginaAtual === 1 ? 'disabled' : ''} onclick="irPagina(${_paginaAtual - 1})">‹ Ant.</button>`;
+    for (let i = 1; i <= totPag; i++) {
+      if (totPag > 7 && Math.abs(i - _paginaAtual) > 2 && i !== 1 && i !== totPag) { if (i === 2 || i === totPag - 1) btns += '<span style="padding:0 4px">…</span>'; continue; }
+      btns += `<button class="btn ${i === _paginaAtual ? 'btn-primary' : 'btn-secondary'}" style="padding:4px 10px;font-size:13px;min-width:34px;" onclick="irPagina(${i})">${i}</button>`;
     }
-    openModal('modal-empenhos');
-  }catch(e){}
-}
+    btns += `<button class="btn btn-secondary" style="padding:4px 10px;font-size:13px;" ${_paginaAtual === totPag ? 'disabled' : ''} onclick="irPagina(${_paginaAtual + 1})">Próx. ›</button>`;
+    pag.innerHTML = btns;
+  }
 
-function prorrogarContrato(cid,numero,vigenciaAtual){
-  document.getElementById('prorr-cid').value=cid;
-  document.getElementById('prorr-title').textContent=`Prorrogar – Contrato ${numero}`;
-  document.getElementById('prorr-atual').value=fmtData(vigenciaAtual);
-  document.getElementById('prorr-nova').value='';
-  document.getElementById('prorr-motivo').value='';
-  openModal('modal-prorrogacao');
-}
+  function irPagina(n) { _paginaAtual = n; renderizar(); }
+  function fmtData(iso) { if (!iso) return ''; const p = iso.split('-'); return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : iso; }
 
-async function confirmarProrrogacao(){
-  const cid=document.getElementById('prorr-cid').value;
-  const vigencia_nova=document.getElementById('prorr-nova').value;
-  const motivo=document.getElementById('prorr-motivo').value.trim();
-  if(!vigencia_nova) return showToast('Informe a nova data de vigência','error');
-  try{
-    await apiFetch(`/api/contratos/${cid}/prorrogar`,{method:'POST',body:{vigencia_nova,motivo}});
-    showToast('Vigência prorrogada!','success');
-    closeModal('modal-prorrogacao');
-    await carregarContratos();
-  }catch(e){}
-}
+  let empRowCount = 0;
+  function addEmpenhoRow(emp = {}) {
+    empRowCount++;
+    const idx = empRowCount;
+    const div = document.createElement('div');
+    div.className = 'empenho-row'; div.id = `emp-row-${idx}`;
+    div.innerHTML = `<div class="row-header"><span>Empenho #${idx}</span><button class="btn btn-danger btn-sm" onclick="document.getElementById('emp-row-${idx}').remove()">Remover</button></div>
+    <input type="hidden" class="emp-db-id" value="${emp.id || ''}">
+    <div class="form-grid-3">
+      <div class="form-group"><label>Número *</label><input type="text" class="emp-numero" value="${esc(emp.numero || '')}"></div>
+      <div class="form-group"><label>Valor Total R$ *</label><input type="number" step="0.01" class="emp-valor" value="${emp.valor_total || ''}"></div>
+      <div class="form-group"><label>Saldo Atual</label><input type="number" step="0.01" class="emp-saldo" value="${emp.saldo_atual !== undefined ? emp.saldo_atual : (emp.valor_total || '')}"></div>
+      <div class="form-group"><label>Fonte/Dest. Recurso</label><input type="text" class="emp-fonte" value="${esc(emp.fonte_recurso || '')}"></div>
+      <div class="form-group"><label>Código de Aplicação</label><input type="text" class="emp-cod-apl" value="${esc(emp.codigo_aplicacao || '')}"></div>
+      <div class="form-group"><label>Banco</label><input type="text" class="emp-banco" value="${esc(emp.banco || '')}"></div>
+      <div class="form-group"><label>Agência</label><input type="text" class="emp-agencia" value="${esc(emp.agencia || '')}"></div>
+      <div class="form-group"><label>Conta Bancária</label><input type="text" class="emp-conta" value="${esc(emp.conta_bancaria || '')}"></div>
+      <div class="form-group"><label>Tipo Operação</label><input type="text" class="emp-tipo-op" value="${esc(emp.tipo_operacao || '')}"></div>
+    </div>`;
+    document.getElementById('empenhos-container').appendChild(div);
+  }
 
-async function verHistoricoAlt(cid){
-  try{
-    const data=await apiFetch(`/api/contratos/${cid}/historico-alteracoes`);
-    const body=document.getElementById('historico-alt-body');
-    const all=[...data.contrato,...data.empenhos].sort((a,b)=>b.id-a.id);
-    if(!all.length){body.innerHTML='<p class="text-muted">Nenhuma alteração registrada.</p>';}
-    else{body.innerHTML=`<table><thead><tr><th>Data</th><th>Tabela</th><th>Campo</th><th>Valor Anterior</th><th>Valor Novo</th></tr></thead>
-      <tbody>${all.map(a=>`<tr><td>${esc(a.data_alteracao)}</td><td>${a.tabela==='contratos'?'Contrato':`Empenho ${esc(a.empenho_numero||'')}`}</td><td>${esc(a.campo)}</td><td style="color:#c00">${esc(a.valor_anterior||'–')}</td><td style="color:#0a7a4e">${esc(a.valor_novo||'–')}</td></tr>`).join('')}</tbody></table>`;}
-    openModal('modal-historico-alt');
-  }catch(e){}
-}
+  function coletarEmpenhos() {
+    return Array.from(document.querySelectorAll('#empenhos-container .empenho-row')).map(row => ({
+      id: row.querySelector('.emp-db-id').value || null,
+      numero: row.querySelector('.emp-numero').value.trim(),
+      valor_total: parseFloat(row.querySelector('.emp-valor').value) || 0,
+      saldo_atual: parseFloat(row.querySelector('.emp-saldo').value) || null,
+      fonte_recurso: row.querySelector('.emp-fonte').value.trim(),
+      codigo_aplicacao: row.querySelector('.emp-cod-apl').value.trim(),
+      banco: row.querySelector('.emp-banco').value.trim(),
+      agencia: row.querySelector('.emp-agencia').value.trim(),
+      conta_bancaria: row.querySelector('.emp-conta').value.trim(),
+      tipo_operacao: row.querySelector('.emp-tipo-op').value.trim(),
+    }));
+  }
 
-async function verRelatorio(cid){
-  try{
-    const data=await apiFetch(`/api/contratos/${cid}/relatorio-empenhos`);
-    const body=document.getElementById('relatorio-body');
-    document.getElementById('relatorio-title').textContent=`Relatório – Contrato ${esc(data.contrato.numero)}`;
-    let html=`<div class="flex-between" style="margin-bottom:12px"><span class="text-muted">${esc(data.contrato.empresa_nome)}</span><a href="/api/historico/exportar-xlsx?contrato_id=${cid}" class="btn btn-secondary btn-sm">Exportar CSV</a></div>`;
-    data.empenhos.forEach(emp=>{
-      const usado=emp.valor_total-emp.saldo_atual;const pct=emp.valor_total>0?(usado/emp.valor_total*100).toFixed(1):0;
-      html+=`<div class="empenho-row" style="margin-bottom:16px"><div class="row-header"><span><strong>Empenho ${esc(emp.numero)}</strong></span><span class="saldo-info ${emp.saldo_atual<=0?'saldo-insuf':''}">Saldo: ${formatBRL(emp.saldo_atual)}</span></div>
-        <div style="font-size:12px;color:#666;margin-bottom:8px">Valor total: ${formatBRL(emp.valor_total)} | Utilizado: ${formatBRL(usado)} (${pct}%)</div>`;
-      if(emp.usos&&emp.usos.length)
-        html+=`<table style="font-size:12px"><thead><tr><th>NF</th><th>Medição</th><th>Mês/Ano</th><th>Valor Usado</th><th>Saldo Anterior</th><th>Status</th></tr></thead>
-          <tbody>${emp.usos.map(u=>`<tr><td>${esc(u.numero_nf)}</td><td>${esc(u.numero_medicao)}</td><td>${u.mes_referencia}/${u.ano_referencia}</td><td>${formatBRL(u.valor_usado)}</td><td>${formatBRL(u.saldo_anterior)}</td><td><span class="badge ${u.cancelada?'badge-danger':'badge-success'}">${u.cancelada?'Cancelada':'Confirmada'}</span></td></tr>`).join('')}</tbody></table>`;
-      else html+='<p class="text-muted" style="font-size:12px">Nenhum pagamento registrado.</p>';
-      html+='</div>';
+  function abrirModalContrato() {
+    document.getElementById('c-id').value = '';
+    document.getElementById('contrato-modal-title').textContent = 'Novo Contrato';
+    ['c-numero', 'c-processo', 'c-preposto', 'c-objeto'].forEach(id => document.getElementById(id).value = '');
+    ['c-vig-ini', 'c-vig-fim'].forEach(id => document.getElementById(id).value = '');
+    ['c-empresa', 'c-gestor-tit', 'c-gestor-sup', 'c-fiscal-tit', 'c-fiscal-sup'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('empenhos-container').innerHTML = '';
+    empRowCount = 0; addEmpenhoRow();
+    openModal('modal-contrato');
+  }
+
+  async function editarContrato(id) {
+    try {
+      const data = await apiFetch(`/api/contratos/${id}`);
+      document.getElementById('c-id').value = id;
+      document.getElementById('contrato-modal-title').textContent = 'Editar Contrato';
+      document.getElementById('c-numero').value = data.numero || '';
+      document.getElementById('c-empresa').value = data.empresa_id || '';
+      document.getElementById('c-vig-ini').value = data.vigencia_inicio || '';
+      document.getElementById('c-vig-fim').value = data.vigencia_fim || '';
+      document.getElementById('c-processo').value = data.processo || '';
+      document.getElementById('c-preposto').value = data.preposto || '';
+      document.getElementById('c-objeto').value = data.objeto || '';
+      document.getElementById('c-gestor-tit').value = data.gestor_titular_id || '';
+      document.getElementById('c-gestor-sup').value = data.gestor_suplente_id || '';
+      document.getElementById('c-fiscal-tit').value = data.fiscal_titular_id || '';
+      document.getElementById('c-fiscal-sup').value = data.fiscal_suplente_id || '';
+      document.getElementById('empenhos-container').innerHTML = '';
+      empRowCount = 0;
+      (data.empenhos || []).forEach(e => addEmpenhoRow(e));
+      if (!data.empenhos || !data.empenhos.length) addEmpenhoRow();
+      openModal('modal-contrato');
+    } catch (e) { }
+  }
+
+  async function salvarContrato() {
+    const id = document.getElementById('c-id').value;
+    const empenhos = coletarEmpenhos();
+    // Lista os IDs dos empenhos que devem ser mantidos
+    const empenho_ids_manter = empenhos
+      .filter(e => e.id)  // Apenas os que existem no BD
+      .map(e => parseInt(e.id));
+
+    const body = {
+      numero: document.getElementById('c-numero').value.trim(),
+      empresa_id: document.getElementById('c-empresa').value,
+      vigencia_inicio: document.getElementById('c-vig-ini').value,
+      vigencia_fim: document.getElementById('c-vig-fim').value,
+      objeto: document.getElementById('c-objeto').value.trim(),
+      processo: document.getElementById('c-processo').value.trim(),
+      preposto: document.getElementById('c-preposto').value.trim(),
+      gestor_titular_id: document.getElementById('c-gestor-tit').value,
+      gestor_suplente_id: document.getElementById('c-gestor-sup').value,
+      fiscal_titular_id: document.getElementById('c-fiscal-tit').value,
+      fiscal_suplente_id: document.getElementById('c-fiscal-sup').value,
+      empenhos: empenhos,
+      empenho_ids_manter: empenho_ids_manter,
+    };
+    if (!body.numero || !body.empresa_id || !body.objeto) return showToast('Preencha os campos obrigatórios', 'error');
+    try {
+      if (id) await apiFetch(`/api/contratos/${id}`, { method: 'PUT', body });
+      else await apiFetch('/api/contratos', { method: 'POST', body });
+      showToast('Contrato salvo!', 'success');
+      closeModal('modal-contrato');
+      await carregarContratos();
+    } catch (e) { }
+  }
+
+  async function verEmpenhos(cid) {
+    try {
+      const data = await apiFetch(`/api/contratos/${cid}`);
+      document.getElementById('emp-view-title').textContent = `Empenhos – Contrato ${data.numero}`;
+      const body = document.getElementById('emp-view-body');
+      if (!data.empenhos || !data.empenhos.length) { body.innerHTML = '<p class="text-muted">Nenhum empenho cadastrado.</p>'; }
+      else {
+        body.innerHTML = `<table><thead><tr><th>Número</th><th>Valor Total</th><th>Saldo Atual</th><th>Utilizado</th><th>Ações</th></tr></thead>
+      <tbody>${data.empenhos.map(e => {
+          const usado = e.valor_total - e.saldo_atual; const pct = e.valor_total > 0 ? (usado / e.valor_total * 100).toFixed(1) : 0;
+          const podeDelete = (!e.usos || e.usos.length === 0) ? '' : ' disabled';
+          const btnDelete = !e.usos || e.usos.length === 0
+            ? `<button class="btn btn-danger btn-sm" onclick="deletarEmpenho(${e.id})">Deletar</button>`
+            : `<button class="btn btn-danger btn-sm" disabled title="Empenho possui NFs associadas">Deletar</button>`;
+          return `<tr><td>${esc(e.numero)}</td><td>${formatBRL(e.valor_total)}</td><td><span class="badge ${e.saldo_atual > 0 ? 'badge-success' : 'badge-danger'}">${formatBRL(e.saldo_atual)}</span></td><td>${formatBRL(usado)} (${pct}%)</td><td>${btnDelete}</td></tr>`;
+        }).join('')}</tbody></table>`;
+      }
+      openModal('modal-empenhos');
+    } catch (e) { }
+  }
+
+  async function deletarEmpenho(eid) {
+    confirmAction('Deseja deletar este empenho?', async () => {
+      try {
+        await apiFetch(`/api/empenhos/${eid}`, { method: 'DELETE' });
+        showToast('Empenho deletado!', 'success');
+        const cid = _todosContratos.find(c => c.empenhos && c.empenhos.some(e => e.id === eid))?.id;
+        if (cid) {
+          const contrato = await apiFetch(`/api/contratos/${cid}`);
+          await carregarContratos();
+          verEmpenhos(cid);
+        }
+      } catch (e) { }
     });
-    body.innerHTML=html;
-    openModal('modal-relatorio');
-  }catch(e){}
-}
+  }
 
-async function deletarContrato(id){
-  confirmAction('Deseja excluir este contrato?',async()=>{
-    try{await apiFetch(`/api/contratos/${id}`,{method:'DELETE'});showToast('Excluído!','success');await carregarContratos();}catch(e){}
-  });
-}
+  function prorrogarContrato(cid, numero, vigenciaAtual) {
+    document.getElementById('prorr-cid').value = cid;
+    document.getElementById('prorr-title').textContent = `Prorrogar – Contrato ${numero}`;
+    document.getElementById('prorr-atual').value = fmtData(vigenciaAtual);
+    document.getElementById('prorr-nova').value = '';
+    document.getElementById('prorr-motivo').value = '';
+    openModal('modal-prorrogacao');
+  }
 
-document.addEventListener('DOMContentLoaded', carregarContratos);
+  async function confirmarProrrogacao() {
+    const cid = document.getElementById('prorr-cid').value;
+    const vigencia_nova = document.getElementById('prorr-nova').value;
+    const motivo = document.getElementById('prorr-motivo').value.trim();
+    if (!vigencia_nova) return showToast('Informe a nova data de vigência', 'error');
+    try {
+      await apiFetch(`/api/contratos/${cid}/prorrogar`, { method: 'POST', body: { vigencia_nova, motivo } });
+      showToast('Vigência prorrogada!', 'success');
+      closeModal('modal-prorrogacao');
+      await carregarContratos();
+    } catch (e) { }
+  }
+
+  async function verHistoricoAlt(cid) {
+    try {
+      const data = await apiFetch(`/api/contratos/${cid}/historico-alteracoes`);
+      const body = document.getElementById('historico-alt-body');
+      const all = [...data.contrato, ...data.empenhos].sort((a, b) => b.id - a.id);
+      if (!all.length) { body.innerHTML = '<p class="text-muted">Nenhuma alteração registrada.</p>'; }
+      else {
+        body.innerHTML = `<table><thead><tr><th>Data</th><th>Tabela</th><th>Campo</th><th>Valor Anterior</th><th>Valor Novo</th></tr></thead>
+      <tbody>${all.map(a => `<tr><td>${esc(a.data_alteracao)}</td><td>${a.tabela === 'contratos' ? 'Contrato' : `Empenho ${esc(a.empenho_numero || '')}`}</td><td>${esc(a.campo)}</td><td style="color:#c00">${esc(a.valor_anterior || '–')}</td><td style="color:#0a7a4e">${esc(a.valor_novo || '–')}</td></tr>`).join('')}</tbody></table>`;
+      }
+      openModal('modal-historico-alt');
+    } catch (e) { }
+  }
+
+  async function verRelatorio(cid) {
+    try {
+      const data = await apiFetch(`/api/contratos/${cid}/relatorio-empenhos`);
+      const body = document.getElementById('relatorio-body');
+      document.getElementById('relatorio-title').textContent = `Relatório – Contrato ${esc(data.contrato.numero)}`;
+      let html = `<div class="flex-between" style="margin-bottom:12px"><span class="text-muted">${esc(data.contrato.empresa_nome)}</span><a href="/api/historico/exportar-xlsx?contrato_id=${cid}" class="btn btn-secondary btn-sm">Exportar CSV</a></div>`;
+      data.empenhos.forEach(emp => {
+        const usado = emp.valor_total - emp.saldo_atual; const pct = emp.valor_total > 0 ? (usado / emp.valor_total * 100).toFixed(1) : 0;
+        html += `<div class="empenho-row" style="margin-bottom:16px"><div class="row-header"><span><strong>Empenho ${esc(emp.numero)}</strong></span><span class="saldo-info ${emp.saldo_atual <= 0 ? 'saldo-insuf' : ''}">Saldo: ${formatBRL(emp.saldo_atual)}</span></div>
+        <div style="font-size:12px;color:#666;margin-bottom:8px">Valor total: ${formatBRL(emp.valor_total)} | Utilizado: ${formatBRL(usado)} (${pct}%)</div>`;
+        if (emp.usos && emp.usos.length)
+          html += `<table style="font-size:12px"><thead><tr><th>NF</th><th>Medição</th><th>Mês/Ano</th><th>Valor Usado</th><th>Saldo Anterior</th><th>Status</th></tr></thead>
+          <tbody>${emp.usos.map(u => `<tr><td>${esc(u.numero_nf)}</td><td>${esc(u.numero_medicao)}</td><td>${u.mes_referencia}/${u.ano_referencia}</td><td>${formatBRL(u.valor_usado)}</td><td>${formatBRL(u.saldo_anterior)}</td><td><span class="badge ${u.cancelada ? 'badge-danger' : 'badge-success'}">${u.cancelada ? 'Cancelada' : 'Confirmada'}</span></td></tr>`).join('')}</tbody></table>`;
+        else html += '<p class="text-muted" style="font-size:12px">Nenhum pagamento registrado.</p>';
+        html += '</div>';
+      });
+      body.innerHTML = html;
+      openModal('modal-relatorio');
+    } catch (e) { }
+  }
+
+  async function deletarContrato(id) {
+    confirmAction('Deseja excluir este contrato?', async () => {
+      try { await apiFetch(`/api/contratos/${id}`, { method: 'DELETE' }); showToast('Excluído!', 'success'); await carregarContratos(); } catch (e) { }
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', carregarContratos);
 </script>
 {% endblock %}
