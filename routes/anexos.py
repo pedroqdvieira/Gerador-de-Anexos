@@ -99,8 +99,10 @@ def api_dashboard():
 
     # ── Totais gerais ─────────────────────────────────────────────────────
     total_contratos = len(contratos)
-    total_empresas  = db.execute('SELECT COUNT(*) FROM empresas').fetchone()[0]
-    total_pessoas   = db.execute('SELECT COUNT(*) FROM pessoas').fetchone()[0]
+    r_emp = db.execute('SELECT COUNT(*) AS total FROM empresas').fetchone()
+    r_pes = db.execute('SELECT COUNT(*) AS total FROM pessoas').fetchone()
+    total_empresas  = r_emp['total'] if r_emp else 0
+    total_pessoas   = r_pes['total'] if r_pes else 0
 
     # ── NFs recentes ──────────────────────────────────────────────────────
     nfs = db.execute('''SELECT nf.id, nf.numero_nf, nf.valor_nf,
