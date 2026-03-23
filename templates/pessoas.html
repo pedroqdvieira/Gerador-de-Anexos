@@ -6,35 +6,33 @@
   <button class="btn btn-primary" onclick="openModal('modal-pessoa')">+ Nova Pessoa</button>
 </div>
 
+<div class="card" style="padding:14px 20px;margin-bottom:12px;">
+  <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+    <input type="text" id="busca-pessoas" placeholder="🔍  Buscar por nome ou matrícula…"
+      style="flex:1;min-width:220px;padding:8px 12px;border:1px solid var(--border);border-radius:6px;font-size:14px;"
+      oninput="filtrar()">
+    <select id="itens-por-pag" onchange="filtrar()" style="padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:14px;">
+      <option value="20">20 por página</option>
+      <option value="50">50 por página</option>
+      <option value="100">100 por página</option>
+      <option value="9999">Todos</option>
+    </select>
+    <span id="contador-pessoas" style="color:var(--text-muted);font-size:13px;white-space:nowrap;"></span>
+  </div>
+</div>
+
 <div class="card">
   <div class="table-wrapper">
     <table id="tbl-pessoas">
       <thead><tr><th>Nome</th><th>Matrícula</th><th>Ações</th></tr></thead>
-      <tbody>
-        {% for p in pessoas %}
-        <tr data-id="{{ p.id }}">
-          <td>{{ p.nome }}</td>
-          <td>{{ p.matricula }}</td>
-          <td>
-            <div class="meatball-wrap">
-              <button class="meatball-btn" onclick="toggleMeatball('mb-p-{{ p.id }}', this)">···</button>
-              <div class="meatball-menu" id="mb-p-{{ p.id }}">
-                <button class="meatball-item" onclick="document.getElementById('mb-p-{{ p.id }}').classList.remove('open');editarPessoa({{ p.id }}, '{{ p.nome }}', '{{ p.matricula }}')">Editar</button>
-                <div class="meatball-sep"></div>
-                <button class="meatball-item danger" onclick="document.getElementById('mb-p-{{ p.id }}').classList.remove('open');deletarPessoa({{ p.id }})">Excluir</button>
-              </div>
-            </div>
-          </td>
-        </tr>
-        {% else %}
-        <tr><td colspan="3" class="empty-state"><p>Nenhuma pessoa cadastrada.</p></td></tr>
-        {% endfor %}
+      <tbody id="tbody-pessoas">
+        <tr><td colspan="3" style="text-align:center;color:var(--text-muted);padding:24px;">Carregando…</td></tr>
       </tbody>
     </table>
   </div>
+  <div id="paginacao-pessoas" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:16px 20px;border-top:1px solid var(--border);flex-wrap:wrap;"></div>
 </div>
 
-<!-- Modal -->
 <div class="modal-overlay" id="modal-pessoa">
   <div class="modal">
     <div class="modal-header">
@@ -62,6 +60,64 @@
 
 {% block scripts %}
 <script>
+let _todasPessoas = [];
+let _paginaAtual  = 1;
+
+async function carregarPessoas() {
+  try {
+    _todasPessoas = await apiFetch('/api/pessoas');
+    filtrar();
+  } catch(e) {
+    document.getElementById('tbody-pessoas').innerHTML =
+      '<tr><td colspan="3" style="text-align:center;color:var(--danger)">Erro ao carregar.</td></tr>';
+  }
+}
+
+function filtrar() { _paginaAtual = 1; renderizar(); }
+
+function renderizar() {
+  const busca    = document.getElementById('busca-pessoas').value.toLowerCase().trim();
+  const itensPag = parseInt(document.getElementById('itens-por-pag').value);
+  let lista = _todasPessoas;
+  if (busca) lista = lista.filter(p =>
+    p.nome.toLowerCase().includes(busca) || (p.matricula||'').toLowerCase().includes(busca));
+
+  const total  = lista.length;
+  const totPag = itensPag >= 9999 ? 1 : Math.max(1, Math.ceil(total / itensPag));
+  _paginaAtual  = Math.min(_paginaAtual, totPag);
+  const inicio  = itensPag >= 9999 ? 0 : (_paginaAtual - 1) * itensPag;
+  const pagina  = itensPag >= 9999 ? lista : lista.slice(inicio, inicio + itensPag);
+
+  document.getElementById('contador-pessoas').textContent =
+    total === _todasPessoas.length ? `${total} pessoa(s)` : `${total} de ${_todasPessoas.length}`;
+
+  const tbody = document.getElementById('tbody-pessoas');
+  tbody.innerHTML = pagina.length ? pagina.map(p => `
+    <tr data-id="${p.id}">
+      <td>${esc(p.nome)}</td><td>${esc(p.matricula||'')}</td>
+      <td><div class="meatball-wrap">
+        <button class="meatball-btn" onclick="toggleMeatball('mb-p-${p.id}',this)">···</button>
+        <div class="meatball-menu" id="mb-p-${p.id}">
+          <button class="meatball-item" onclick="document.getElementById('mb-p-${p.id}').classList.remove('open');editarPessoa(${p.id},${JSON.stringify(p.nome)},${JSON.stringify(p.matricula||'')})">Editar</button>
+          <div class="meatball-sep"></div>
+          <button class="meatball-item danger" onclick="document.getElementById('mb-p-${p.id}').classList.remove('open');deletarPessoa(${p.id})">Excluir</button>
+        </div></div></td>
+    </tr>`).join('') :
+    '<tr><td colspan="3" class="empty-state"><p>Nenhuma pessoa encontrada.</p></td></tr>';
+
+  const pag = document.getElementById('paginacao-pessoas');
+  if (totPag <= 1) { pag.innerHTML = ''; return; }
+  let btns = `<button class="btn btn-secondary" style="padding:4px 10px;font-size:13px;" ${_paginaAtual===1?'disabled':''} onclick="irPagina(${_paginaAtual-1})">‹ Ant.</button>`;
+  for (let i=1;i<=totPag;i++) {
+    if (totPag>7 && Math.abs(i-_paginaAtual)>2 && i!==1 && i!==totPag) { if(i===2||i===totPag-1) btns+='<span style="padding:0 4px">…</span>'; continue; }
+    btns += `<button class="btn ${i===_paginaAtual?'btn-primary':'btn-secondary'}" style="padding:4px 10px;font-size:13px;min-width:34px;" onclick="irPagina(${i})">${i}</button>`;
+  }
+  btns += `<button class="btn btn-secondary" style="padding:4px 10px;font-size:13px;" ${_paginaAtual===totPag?'disabled':''} onclick="irPagina(${_paginaAtual+1})">Próx. ›</button>`;
+  pag.innerHTML = btns;
+}
+
+function irPagina(n) { _paginaAtual = n; renderizar(); }
+
 function editarPessoa(id, nome, matricula) {
   document.getElementById('pessoa-id').value = id;
   document.getElementById('pessoa-nome').value = nome;
@@ -76,26 +132,19 @@ async function salvarPessoa() {
   const matricula = document.getElementById('pessoa-matricula').value.trim();
   if (!nome || !matricula) return showToast('Preencha nome e matrícula', 'error');
   try {
-    if (id) {
-      await apiFetch(`/api/pessoas/${id}`, { method: 'PUT', body: { nome, matricula } });
-      showToast('Pessoa atualizada!', 'success');
-    } else {
-      await apiFetch('/api/pessoas', { method: 'POST', body: { nome, matricula } });
-      showToast('Pessoa cadastrada!', 'success');
-    }
-    location.reload();
+    if (id) { await apiFetch(`/api/pessoas/${id}`, {method:'PUT', body:{nome,matricula}}); showToast('Atualizada!','success'); }
+    else    { await apiFetch('/api/pessoas', {method:'POST', body:{nome,matricula}}); showToast('Cadastrada!','success'); }
+    closeModal('modal-pessoa');
+    await carregarPessoas();
   } catch(e) {}
 }
 
 async function deletarPessoa(id) {
   confirmAction('Deseja excluir esta pessoa?', async () => {
-    try {
-      await apiFetch(`/api/pessoas/${id}`, { method: 'DELETE' });
-      showToast('Pessoa excluída!', 'success');
-      location.reload();
-    } catch(e) {}
+    try { await apiFetch(`/api/pessoas/${id}`, {method:'DELETE'}); showToast('Excluída!','success'); await carregarPessoas(); } catch(e) {}
   });
 }
+
+document.addEventListener('DOMContentLoaded', carregarPessoas);
 </script>
 {% endblock %}
-

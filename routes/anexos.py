@@ -170,6 +170,36 @@ def validar_saldo():
     db.close()
     return jsonify({'erros': erros, 'alertas': alertas, 'ok': len(erros) == 0})
 
+@anexos_bp.route('/api/rascunhos')
+def api_rascunhos():
+    """Lista NFs em rascunho (sem data_geracao e nao canceladas) com dados completos."""
+    db = get_db()
+    rascunhos = db.execute('''
+        SELECT nf.id, nf.contrato_id, nf.numero_nf, nf.valor_nf,
+               nf.mes_referencia, nf.ano_referencia, nf.periodo_inicio, nf.periodo_fim,
+               nf.numero_medicao, nf.gestor_id, nf.fiscal_id, nf.meio_recebimento,
+               nf.data_verificacao_certidoes, nf.houve_ocorrencias,
+               nf.ocorrencia_execucao, nf.ocorrencia_providencias, nf.ocorrencia_resultados,
+               nf.checklist_json,
+               c.numero as contrato_numero, e.razao_social as empresa_nome
+        FROM notas_fiscais nf
+        JOIN contratos c ON nf.contrato_id = c.id
+        JOIN empresas e ON c.empresa_id = e.id
+        WHERE nf.data_geracao IS NULL AND nf.cancelada = 0
+        ORDER BY nf.id DESC
+    ''').fetchall()
+    result = []
+    for r in rascunhos:
+        d = dict(r)
+        # Inclui empenhos usados
+        emps = db.execute(
+            'SELECT empenho_id, valor_usado FROM nf_empenhos WHERE nota_fiscal_id=?',
+            (r['id'],)).fetchall()
+        d['empenhos_usados'] = [dict(e) for e in emps]
+        result.append(d)
+    db.close()
+    return jsonify(result)
+
 @anexos_bp.route('/api/nf/salvar-rascunho', methods=['POST'])
 def salvar_rascunho():
     data = request.json
@@ -186,30 +216,61 @@ def salvar_rascunho():
                            f'Disponível: R$ {emp["saldo_atual"]:,.2f}'}), 400
     try:
         checklist_json = json.dumps(data.get('checklist', {}))
-        cur = db.execute('''INSERT INTO notas_fiscais
-            (contrato_id, numero_nf, valor_nf, mes_referencia, ano_referencia,
-             periodo_inicio, periodo_fim, numero_medicao, gestor_id, fiscal_id,
-             meio_recebimento, data_verificacao_certidoes,
-             houve_ocorrencias, ocorrencia_execucao, ocorrencia_providencias, ocorrencia_resultados,
-             checklist_json, cancelada, data_geracao)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, NULL)''',
-            (data['contrato_id'], data['numero_nf'], float(data['valor_nf']),
-             int(data['mes_referencia']), int(data['ano_referencia']),
-             data['periodo_inicio'], data['periodo_fim'], data['numero_medicao'],
-             data['gestor_id'], data['fiscal_id'], data['meio_recebimento'],
-             data.get('data_verificacao_certidoes', ''),
-             1 if data.get('houve_ocorrencias') else 0,
-             data.get('ocorrencia_execucao', ''), data.get('ocorrencia_providencias', ''),
-             data.get('ocorrencia_resultados', ''), checklist_json))
-        nf_id = cur.lastrowid
-        for emp_uso in data.get('empenhos_usados', []):
-            emp = db.execute('SELECT * FROM empenhos WHERE id=?', (emp_uso['empenho_id'],)).fetchone()
-            db.execute('''INSERT INTO nf_empenhos (nota_fiscal_id, empenho_id, valor_usado, saldo_anterior)
-                VALUES (?, ?, ?, ?)''',
-                (nf_id, emp_uso['empenho_id'], float(emp_uso['valor_usado']), emp['saldo_atual']))
-        db.commit()
-        db.close()
-        return jsonify({'nf_id': nf_id})
+        nf_id_existente = data.get('nf_id')  # Se presente, atualiza rascunho existente
+
+        if nf_id_existente:
+            # Atualiza rascunho existente
+            db.execute('''UPDATE notas_fiscais SET
+                contrato_id=?, numero_nf=?, valor_nf=?, mes_referencia=?, ano_referencia=?,
+                periodo_inicio=?, periodo_fim=?, numero_medicao=?, gestor_id=?, fiscal_id=?,
+                meio_recebimento=?, data_verificacao_certidoes=?,
+                houve_ocorrencias=?, ocorrencia_execucao=?, ocorrencia_providencias=?,
+                ocorrencia_resultados=?, checklist_json=?
+                WHERE id=? AND data_geracao IS NULL AND cancelada=0''',
+                (data['contrato_id'], data['numero_nf'], float(data['valor_nf']),
+                 int(data['mes_referencia']), int(data['ano_referencia']),
+                 data['periodo_inicio'], data['periodo_fim'], data['numero_medicao'],
+                 data['gestor_id'], data['fiscal_id'], data['meio_recebimento'],
+                 data.get('data_verificacao_certidoes', ''),
+                 1 if data.get('houve_ocorrencias') else 0,
+                 data.get('ocorrencia_execucao', ''), data.get('ocorrencia_providencias', ''),
+                 data.get('ocorrencia_resultados', ''), checklist_json, nf_id_existente))
+            # Recria empenhos
+            db.execute('DELETE FROM nf_empenhos WHERE nota_fiscal_id=?', (nf_id_existente,))
+            for emp_uso in data.get('empenhos_usados', []):
+                emp = db.execute('SELECT * FROM empenhos WHERE id=?', (emp_uso['empenho_id'],)).fetchone()
+                db.execute('''INSERT INTO nf_empenhos (nota_fiscal_id, empenho_id, valor_usado, saldo_anterior)
+                    VALUES (?, ?, ?, ?)''',
+                    (nf_id_existente, emp_uso['empenho_id'], float(emp_uso['valor_usado']), emp['saldo_atual']))
+            db.commit()
+            db.close()
+            return jsonify({'nf_id': nf_id_existente})
+        else:
+            # Novo rascunho
+            cur = db.execute('''INSERT INTO notas_fiscais
+                (contrato_id, numero_nf, valor_nf, mes_referencia, ano_referencia,
+                 periodo_inicio, periodo_fim, numero_medicao, gestor_id, fiscal_id,
+                 meio_recebimento, data_verificacao_certidoes,
+                 houve_ocorrencias, ocorrencia_execucao, ocorrencia_providencias, ocorrencia_resultados,
+                 checklist_json, cancelada, data_geracao)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, NULL)''',
+                (data['contrato_id'], data['numero_nf'], float(data['valor_nf']),
+                 int(data['mes_referencia']), int(data['ano_referencia']),
+                 data['periodo_inicio'], data['periodo_fim'], data['numero_medicao'],
+                 data['gestor_id'], data['fiscal_id'], data['meio_recebimento'],
+                 data.get('data_verificacao_certidoes', ''),
+                 1 if data.get('houve_ocorrencias') else 0,
+                 data.get('ocorrencia_execucao', ''), data.get('ocorrencia_providencias', ''),
+                 data.get('ocorrencia_resultados', ''), checklist_json))
+            nf_id = cur.lastrowid
+            for emp_uso in data.get('empenhos_usados', []):
+                emp = db.execute('SELECT * FROM empenhos WHERE id=?', (emp_uso['empenho_id'],)).fetchone()
+                db.execute('''INSERT INTO nf_empenhos (nota_fiscal_id, empenho_id, valor_usado, saldo_anterior)
+                    VALUES (?, ?, ?, ?)''',
+                    (nf_id, emp_uso['empenho_id'], float(emp_uso['valor_usado']), emp['saldo_atual']))
+            db.commit()
+            db.close()
+            return jsonify({'nf_id': nf_id})
     except Exception as e:
         db.close()
         return jsonify({'error': str(e)}), 400

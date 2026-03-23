@@ -183,7 +183,7 @@
  <div id="pdf-actions-container" style="display:none">
  <div class="card-title" style="margin-top:16px"> Baixar Documentos</div>
  <div class="pdf-actions">
- <a id="pdf-all" href="#" class="pdf-btn all" target="_blank"> Todos os Anexos (PDF único)</a>
+ <a id="pdf-zip" href="#" class="pdf-btn all" target="_blank"> Baixar todos (ZIP)</a>
  <a id="pdf-iii" href="#" class="pdf-btn" target="_blank"> Anexo III</a>
  <a id="pdf-vi" href="#" class="pdf-btn" target="_blank"> Anexo VI</a>
  <a id="pdf-ix" href="#" class="pdf-btn" target="_blank"> Anexo IX</a>
@@ -201,6 +201,20 @@
  <button class="btn btn-primary" onclick="location.reload()">+ Novo Pagamento</button>
  </div>
 </div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- RASCUNHOS PENDENTES                                      -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div id="secao-rascunhos" style="display:none;margin-top:32px;">
+  <div class="card">
+    <div class="card-title" style="display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--border);margin:0;">
+      <span>📋 Rascunhos Pendentes</span>
+      <span id="badge-rascunhos" class="badge badge-warning" style="font-size:12px;"></span>
+    </div>
+    <div id="lista-rascunhos" style="padding:0;"></div>
+  </div>
+</div>
+
 
 {% endblock %}
 
@@ -596,17 +610,15 @@ function coletarPayload() {
 }
 
 async function salvarRascunho() {
- // Validate saldo first
  const payload = coletarPayload();
+ if (nfId) payload.nf_id = nfId;  // Atualiza rascunho existente
  try {
    const validacao = await apiFetch('/api/nf/validar-saldo', { method: 'POST', body: payload });
-   if (!validacao.ok) {
-     showToast(validacao.erros[0], 'error');
-     return;
-   }
+   if (!validacao.ok) { showToast(validacao.erros[0], 'error'); return; }
    const data = await apiFetch('/api/nf/salvar-rascunho', { method: 'POST', body: payload });
    nfId = data.nf_id;
-   showToast('Rascunho salvo! ID: ' + nfId, 'success');
+   showToast('Rascunho salvo!', 'success');
+   carregarRascunhos();
  } catch(e) {}
 }
 
@@ -637,12 +649,112 @@ async function confirmarNF() {
    document.getElementById('btn-confirmar-group').style.display = 'none';
    document.getElementById('btn-pos-confirmacao').style.display = 'flex';
    document.getElementById('pdf-actions-container').style.display = 'block';
-   document.getElementById('pdf-all').href = `/api/nf/${nfId}/pdf/todos`;
-   document.getElementById('pdf-iii').href = `/api/nf/${nfId}/pdf/anexo_iii`;
-   document.getElementById('pdf-vi').href = `/api/nf/${nfId}/pdf/anexo_vi`;
-   document.getElementById('pdf-ix').href = `/api/nf/${nfId}/pdf/anexo_ix`;
+   document.getElementById('pdf-zip').href    = `/api/nf/${nfId}/pdf/zip`;
+   document.getElementById('pdf-iii').href    = `/api/nf/${nfId}/pdf/anexo_iii`;
+   document.getElementById('pdf-vi').href     = `/api/nf/${nfId}/pdf/anexo_vi`;
+   document.getElementById('pdf-ix').href     = `/api/nf/${nfId}/pdf/anexo_ix`;
    document.getElementById('pdf-ateste').href = `/api/nf/${nfId}/pdf/ateste`;
+   carregarRascunhos();
  } catch(e) {}
 }
+
+// ── RASCUNHOS ──────────────────────────────────────────────────────────────
+const MESES = ['','Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+               'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+async function carregarRascunhos() {
+  try {
+    const lista = await apiFetch('/api/rascunhos');
+    const secao = document.getElementById('secao-rascunhos');
+    const badge = document.getElementById('badge-rascunhos');
+    const div   = document.getElementById('lista-rascunhos');
+    if (!lista.length) { secao.style.display='none'; return; }
+    secao.style.display='block';
+    badge.textContent = lista.length;
+    div.innerHTML = lista.map(r => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:8px;">
+        <div>
+          <strong>${esc(r.contrato_numero)}</strong>
+          <span style="color:var(--text-muted);margin:0 8px;">·</span>
+          <span>${esc(r.empresa_nome)}</span>
+          <span style="color:var(--text-muted);margin:0 8px;">·</span>
+          <span>NF ${esc(r.numero_nf||'—')} · ${MESES[r.mes_referencia]||r.mes_referencia}/${r.ano_referencia}</span>
+          <span style="color:var(--text-muted);margin:0 8px;">·</span>
+          <span>${formatBRL(r.valor_nf)}</span>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-primary btn-sm" onclick="continuarRascunho(${r.id})">Continuar →</button>
+          <button class="btn btn-danger btn-sm" onclick="cancelarRascunho(${r.id})">Descartar</button>
+        </div>
+      </div>`).join('');
+  } catch(e) {}
+}
+
+async function continuarRascunho(id) {
+  try {
+    const lista = await apiFetch('/api/rascunhos');
+    const r = lista.find(x => x.id === id);
+    if (!r) return;
+
+    // Preenche estado global
+    nfId = r.id;
+
+    // Preenche step 1 — seleciona contrato
+    const sel = document.getElementById('sel-contrato');
+    if (sel) { sel.value = r.contrato_id; await selecionarContrato(); }
+
+    // Preenche step 2 — dados NF
+    const campos = {
+      'nf-numero': r.numero_nf, 'nf-valor': r.valor_nf,
+      'nf-mes': r.mes_referencia, 'nf-ano': r.ano_referencia,
+      'nf-periodo-ini': r.periodo_inicio, 'nf-periodo-fim': r.periodo_fim,
+      'nf-medicao': r.numero_medicao, 'sel-gestor': r.gestor_id,
+      'sel-fiscal': r.fiscal_id, 'sel-meio': r.meio_recebimento,
+      'nf-data-certidoes': r.data_verificacao_certidoes,
+    };
+    Object.entries(campos).forEach(([id, val]) => {
+      const el = document.getElementById(id);
+      if (el && val !== null && val !== undefined) el.value = val;
+    });
+
+    // Ocorrências
+    const chkOcorr = document.getElementById('chk-ocorrencias');
+    if (chkOcorr) { chkOcorr.checked = !!r.houve_ocorrencias; toggleOcorrencias(); }
+    ['nf-ocorr-exec','nf-ocorr-prov','nf-ocorr-res'].forEach((fid,i) => {
+      const vals = [r.ocorrencia_execucao, r.ocorrencia_providencias, r.ocorrencia_resultados];
+      const el = document.getElementById(fid);
+      if (el) el.value = vals[i]||'';
+    });
+
+    // Checklist
+    try {
+      const ck = JSON.parse(r.checklist_json||'{}');
+      Object.entries(ck).forEach(([k,v]) => {
+        const el = document.getElementById(k);
+        if (el && el.type==='checkbox') el.checked = !!v;
+      });
+    } catch(e2) {}
+
+    // Empenhos usados — preenche após ir para step 3
+    window._rascunhoEmpenhos = r.empenhos_usados || [];
+
+    document.getElementById('alert-rascunho').style.display = 'block';
+    irParaStep(1);
+    showToast('Rascunho carregado — confira os dados e continue.', 'success');
+  } catch(e) { showToast('Erro ao carregar rascunho', 'error'); }
+}
+
+async function cancelarRascunho(id) {
+  confirmAction('Descartar este rascunho?', async () => {
+    try {
+      await apiFetch(`/api/nf/${id}/cancelar`, { method: 'POST' });
+      showToast('Rascunho descartado.', 'success');
+      if (nfId === id) { nfId = null; document.getElementById('alert-rascunho').style.display='none'; }
+      carregarRascunhos();
+    } catch(e) {}
+  });
+}
+
+document.addEventListener('DOMContentLoaded', carregarRascunhos);
 </script>
 {% endblock %}

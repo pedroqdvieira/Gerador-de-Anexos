@@ -2,56 +2,74 @@
 {% block title %}Empresas – Gerador de Anexos{% endblock %}
 {% block content %}
 <div class="page-header flex-between">
-  <div><h1>Cadastro de Empresas</h1><p>Empresas contratadas</p></div>
-  <button class="btn btn-primary" onclick="novaEmpresa()">+ Nova Empresa</button>
+  <div><h1>Empresas</h1><p>Fornecedores e prestadores de serviço</p></div>
+  <button class="btn btn-primary" onclick="openModal('modal-empresa')">+ Nova Empresa</button>
+</div>
+
+<div class="card" style="padding:14px 20px;margin-bottom:12px;">
+  <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+    <input type="text" id="busca-empresas" placeholder="🔍  Buscar por razão social ou CNPJ…"
+      style="flex:1;min-width:220px;padding:8px 12px;border:1px solid var(--border);border-radius:6px;font-size:14px;"
+      oninput="filtrar()">
+    <select id="itens-por-pag" onchange="filtrar()" style="padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:14px;">
+      <option value="20">20 por página</option>
+      <option value="50">50 por página</option>
+      <option value="100">100 por página</option>
+      <option value="9999">Todos</option>
+    </select>
+    <span id="contador-empresas" style="color:var(--text-muted);font-size:13px;white-space:nowrap;"></span>
+  </div>
 </div>
 
 <div class="card">
   <div class="table-wrapper">
     <table>
-      <thead><tr><th>Razão Social</th><th>CNPJ</th><th>Banco</th><th>Conta</th><th>Ações</th></tr></thead>
-      <tbody>
-        {% for e in empresas %}
-        <tr>
-          <td>{{ e.razao_social }}</td>
-          <td>{{ e.cnpj }}</td>
-          <td>{{ e.banco or '–' }}</td>
-          <td>{{ e.conta_bancaria or '–' }}</td>
-          <td>
-            <div class="meatball-wrap">
-              <button class="meatball-btn" onclick="toggleMeatball('mb-e-{{ e.id }}', this)">···</button>
-              <div class="meatball-menu" id="mb-e-{{ e.id }}">
-                <button class="meatball-item" onclick="document.getElementById('mb-e-{{ e.id }}').classList.remove('open');editarEmpresaById({{ e.id }})">Editar</button>
-                <div class="meatball-sep"></div>
-                <button class="meatball-item danger" onclick="document.getElementById('mb-e-{{ e.id }}').classList.remove('open');deletarEmpresa({{ e.id }})">Excluir</button>
-              </div>
-            </div>
-          </td>
-        </tr>
-        {% else %}
-        <tr><td colspan="5" style="text-align:center;padding:32px;color:#aaa">Nenhuma empresa cadastrada.</td></tr>
-        {% endfor %}
+      <thead><tr><th>Razão Social</th><th>CNPJ</th><th>Banco</th><th>Ações</th></tr></thead>
+      <tbody id="tbody-empresas">
+        <tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:24px;">Carregando…</td></tr>
       </tbody>
     </table>
   </div>
+  <div id="paginacao-empresas" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:16px 20px;border-top:1px solid var(--border);flex-wrap:wrap;"></div>
 </div>
 
-<!-- Modal -->
+<!-- Modal Empresa -->
 <div class="modal-overlay" id="modal-empresa">
-  <div class="modal">
+  <div class="modal" style="max-width:600px;">
     <div class="modal-header">
-      <h2 id="emp-modal-title">Nova Empresa</h2>
+      <h2 id="modal-emp-title">Nova Empresa</h2>
       <button class="modal-close" onclick="closeModal('modal-empresa')">×</button>
     </div>
     <input type="hidden" id="emp-id">
-    <div class="form-grid-2">
-      <div class="form-group full-width"><label>Razão Social *</label><input type="text" id="emp-razao"></div>
-      <div class="form-group"><label>CNPJ *</label><input type="text" id="emp-cnpj" placeholder="XX.XXX.XXX/XXXX-XX"></div>
-      <div class="form-group"><label>Endereço</label><input type="text" id="emp-endereco"></div>
-      <div class="form-group"><label>Banco</label><input type="text" id="emp-banco" placeholder="Ex: Banco do Brasil"></div>
-      <div class="form-group"><label>Agência</label><input type="text" id="emp-agencia"></div>
-      <div class="form-group"><label>Conta Bancária nº</label><input type="text" id="emp-conta"></div>
-      <div class="form-group"><label>Tipo de Operação Bancária</label><input type="text" id="emp-tipo-op" placeholder="Ex: Conta Corrente"></div>
+    <div class="form-grid">
+      <div class="form-group" style="grid-column:1/-1">
+        <label>Razão Social *</label>
+        <input type="text" id="emp-razao" placeholder="Nome da empresa">
+      </div>
+      <div class="form-group">
+        <label>CNPJ *</label>
+        <input type="text" id="emp-cnpj" placeholder="00.000.000/0000-00" maxlength="18">
+      </div>
+      <div class="form-group" style="grid-column:1/-1">
+        <label>Endereço</label>
+        <input type="text" id="emp-endereco" placeholder="Endereço completo">
+      </div>
+      <div class="form-group">
+        <label>Banco</label>
+        <input type="text" id="emp-banco" placeholder="Ex: Banco do Brasil">
+      </div>
+      <div class="form-group">
+        <label>Agência</label>
+        <input type="text" id="emp-agencia" placeholder="Ex: 1234-5">
+      </div>
+      <div class="form-group">
+        <label>Conta</label>
+        <input type="text" id="emp-conta" placeholder="Ex: 12345-6">
+      </div>
+      <div class="form-group">
+        <label>Tipo de Operação</label>
+        <input type="text" id="emp-operacao" placeholder="Ex: Conta Corrente">
+      </div>
     </div>
     <div class="btn-group mt-16">
       <button class="btn btn-primary" onclick="salvarEmpresa()">Salvar</button>
@@ -63,62 +81,109 @@
 
 {% block scripts %}
 <script>
-function novaEmpresa() {
-  document.getElementById('emp-id').value = '';
-  ['razao','cnpj','endereco','banco','agencia','conta','tipo-op'].forEach(f => document.getElementById(`emp-${f}`).value = '');
-  document.getElementById('emp-modal-title').textContent = 'Nova Empresa';
-  openModal('modal-empresa');
-}
+let _todasEmpresas = [];
+let _paginaAtual   = 1;
 
-async function editarEmpresaById(id) {
+async function carregarEmpresas() {
   try {
-    const empresas = await apiFetch('/api/empresas');
-    const e = empresas.find(x => x.id === id);
-    if (e) editarEmpresa(e);
-  } catch(err) {}
+    _todasEmpresas = await apiFetch('/api/empresas');
+    filtrar();
+  } catch(e) {
+    document.getElementById('tbody-empresas').innerHTML =
+      '<tr><td colspan="4" style="text-align:center;color:var(--danger)">Erro ao carregar.</td></tr>';
+  }
 }
 
-function editarEmpresa(e) {
-  document.getElementById('emp-id').value = e.id;
-  document.getElementById('emp-razao').value = e.razao_social || '';
-  document.getElementById('emp-cnpj').value = e.cnpj || '';
-  document.getElementById('emp-endereco').value = e.endereco || '';
-  document.getElementById('emp-banco').value = e.banco || '';
-  document.getElementById('emp-agencia').value = e.agencia || '';
-  document.getElementById('emp-conta').value = e.conta_bancaria || '';
-  document.getElementById('emp-tipo-op').value = e.tipo_operacao || '';
-  document.getElementById('emp-modal-title').textContent = 'Editar Empresa';
+function filtrar() { _paginaAtual = 1; renderizar(); }
+
+function renderizar() {
+  const busca    = document.getElementById('busca-empresas').value.toLowerCase().trim();
+  const itensPag = parseInt(document.getElementById('itens-por-pag').value);
+  let lista = _todasEmpresas;
+  if (busca) lista = lista.filter(e =>
+    e.razao_social.toLowerCase().includes(busca) || (e.cnpj||'').toLowerCase().includes(busca));
+
+  const total  = lista.length;
+  const totPag = itensPag >= 9999 ? 1 : Math.max(1, Math.ceil(total / itensPag));
+  _paginaAtual  = Math.min(_paginaAtual, totPag);
+  const inicio  = itensPag >= 9999 ? 0 : (_paginaAtual - 1) * itensPag;
+  const pagina  = itensPag >= 9999 ? lista : lista.slice(inicio, inicio + itensPag);
+
+  document.getElementById('contador-empresas').textContent =
+    total === _todasEmpresas.length ? `${total} empresa(s)` : `${total} de ${_todasEmpresas.length}`;
+
+  const tbody = document.getElementById('tbody-empresas');
+  tbody.innerHTML = pagina.length ? pagina.map(e => `
+    <tr data-id="${e.id}">
+      <td>${esc(e.razao_social)}</td>
+      <td>${esc(e.cnpj||'')}</td>
+      <td>${esc(e.banco||'—')}</td>
+      <td><div class="meatball-wrap">
+        <button class="meatball-btn" onclick="toggleMeatball('mb-e-${e.id}',this)">···</button>
+        <div class="meatball-menu" id="mb-e-${e.id}">
+          <button class="meatball-item" onclick="document.getElementById('mb-e-${e.id}').classList.remove('open');editarEmpresaById(${e.id})">Editar</button>
+          <div class="meatball-sep"></div>
+          <button class="meatball-item danger" onclick="document.getElementById('mb-e-${e.id}').classList.remove('open');deletarEmpresa(${e.id})">Excluir</button>
+        </div></div></td>
+    </tr>`).join('') :
+    '<tr><td colspan="4" class="empty-state"><p>Nenhuma empresa encontrada.</p></td></tr>';
+
+  const pag = document.getElementById('paginacao-empresas');
+  if (totPag <= 1) { pag.innerHTML = ''; return; }
+  let btns = `<button class="btn btn-secondary" style="padding:4px 10px;font-size:13px;" ${_paginaAtual===1?'disabled':''} onclick="irPagina(${_paginaAtual-1})">‹ Ant.</button>`;
+  for (let i=1;i<=totPag;i++) {
+    if (totPag>7 && Math.abs(i-_paginaAtual)>2 && i!==1 && i!==totPag) { if(i===2||i===totPag-1) btns+='<span style="padding:0 4px">…</span>'; continue; }
+    btns += `<button class="btn ${i===_paginaAtual?'btn-primary':'btn-secondary'}" style="padding:4px 10px;font-size:13px;min-width:34px;" onclick="irPagina(${i})">${i}</button>`;
+  }
+  btns += `<button class="btn btn-secondary" style="padding:4px 10px;font-size:13px;" ${_paginaAtual===totPag?'disabled':''} onclick="irPagina(${_paginaAtual+1})">Próx. ›</button>`;
+  pag.innerHTML = btns;
+}
+
+function irPagina(n) { _paginaAtual = n; renderizar(); }
+
+function editarEmpresaById(id) {
+  const e = _todasEmpresas.find(x => x.id === id);
+  if (!e) return;
+  document.getElementById('emp-id').value       = e.id;
+  document.getElementById('emp-razao').value     = e.razao_social||'';
+  document.getElementById('emp-cnpj').value      = e.cnpj||'';
+  document.getElementById('emp-endereco').value  = e.endereco||'';
+  document.getElementById('emp-banco').value     = e.banco||'';
+  document.getElementById('emp-agencia').value   = e.agencia||'';
+  document.getElementById('emp-conta').value     = e.conta_bancaria||'';
+  document.getElementById('emp-operacao').value  = e.tipo_operacao||'';
+  document.getElementById('modal-emp-title').textContent = 'Editar Empresa';
   openModal('modal-empresa');
 }
 
 async function salvarEmpresa() {
   const id = document.getElementById('emp-id').value;
-  const body = {
-    razao_social: document.getElementById('emp-razao').value.trim(),
-    cnpj: document.getElementById('emp-cnpj').value.trim(),
-    endereco: document.getElementById('emp-endereco').value.trim(),
-    banco: document.getElementById('emp-banco').value.trim(),
-    agencia: document.getElementById('emp-agencia').value.trim(),
-    conta_bancaria: document.getElementById('emp-conta').value.trim(),
-    tipo_operacao: document.getElementById('emp-tipo-op').value.trim(),
+  const payload = {
+    razao_social:  document.getElementById('emp-razao').value.trim(),
+    cnpj:          document.getElementById('emp-cnpj').value.trim(),
+    endereco:      document.getElementById('emp-endereco').value.trim(),
+    banco:         document.getElementById('emp-banco').value.trim(),
+    agencia:       document.getElementById('emp-agencia').value.trim(),
+    conta_bancaria:document.getElementById('emp-conta').value.trim(),
+    tipo_operacao: document.getElementById('emp-operacao').value.trim(),
   };
-  if (!body.razao_social || !body.cnpj) return showToast('Razão Social e CNPJ são obrigatórios', 'error');
+  if (!payload.razao_social || !payload.cnpj) return showToast('Razão social e CNPJ são obrigatórios', 'error');
   try {
-    if (id) await apiFetch(`/api/empresas/${id}`, { method: 'PUT', body });
-    else await apiFetch('/api/empresas', { method: 'POST', body });
-    showToast('Empresa salva!', 'success');
-    location.reload();
+    if (id) { await apiFetch(`/api/empresas/${id}`, {method:'PUT', body:payload}); showToast('Atualizada!','success'); }
+    else    { await apiFetch('/api/empresas', {method:'POST', body:payload}); showToast('Cadastrada!','success'); }
+    closeModal('modal-empresa');
+    document.getElementById('emp-id').value = '';
+    document.getElementById('modal-emp-title').textContent = 'Nova Empresa';
+    await carregarEmpresas();
   } catch(e) {}
 }
 
 async function deletarEmpresa(id) {
   confirmAction('Deseja excluir esta empresa?', async () => {
-    try {
-      await apiFetch(`/api/empresas/${id}`, { method: 'DELETE' });
-      showToast('Empresa excluída!', 'success');
-      location.reload();
-    } catch(e) {}
+    try { await apiFetch(`/api/empresas/${id}`, {method:'DELETE'}); showToast('Excluída!','success'); await carregarEmpresas(); } catch(e) {}
   });
 }
+
+document.addEventListener('DOMContentLoaded', carregarEmpresas);
 </script>
 {% endblock %}

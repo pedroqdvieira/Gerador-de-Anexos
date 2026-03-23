@@ -5,17 +5,24 @@ pessoas_bp = Blueprint('pessoas', __name__)
 
 @pessoas_bp.route('/pessoas')
 def listar():
-    db = get_db()
+    db  = get_db()
     pessoas = db.execute('SELECT * FROM pessoas ORDER BY nome').fetchall()
     db.close()
     return render_template('pessoas.html', pessoas=[dict(p) for p in pessoas])
 
 @pessoas_bp.route('/api/pessoas', methods=['GET'])
 def api_listar():
-    db = get_db()
-    pessoas = db.execute('SELECT * FROM pessoas ORDER BY nome').fetchall()
+    db    = get_db()
+    busca = request.args.get('q', '').strip()
+    if busca:
+        like = f'%{busca}%'
+        rows = db.execute(
+            'SELECT * FROM pessoas WHERE nome LIKE ? OR matricula LIKE ? ORDER BY nome',
+            (like, like)).fetchall()
+    else:
+        rows = db.execute('SELECT * FROM pessoas ORDER BY nome').fetchall()
     db.close()
-    return jsonify([dict(p) for p in pessoas])
+    return jsonify([dict(p) for p in rows])
 
 @pessoas_bp.route('/api/pessoas', methods=['POST'])
 def criar():
@@ -38,7 +45,7 @@ def criar():
 @pessoas_bp.route('/api/pessoas/<int:pid>', methods=['PUT'])
 def atualizar(pid):
     data = request.json
-    db = get_db()
+    db   = get_db()
     try:
         db.execute('UPDATE pessoas SET nome=?, matricula=? WHERE id=?',
                    (data['nome'].strip(), data['matricula'].strip(), pid))

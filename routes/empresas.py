@@ -6,17 +6,24 @@ empresas_bp = Blueprint('empresas', __name__)
 
 @empresas_bp.route('/empresas')
 def listar():
-    db = get_db()
+    db       = get_db()
     empresas = db.execute('SELECT * FROM empresas ORDER BY razao_social').fetchall()
     db.close()
     return render_template('empresas.html', empresas=[dict(e) for e in empresas])
 
 @empresas_bp.route('/api/empresas', methods=['GET'])
 def api_listar():
-    db = get_db()
-    empresas = db.execute('SELECT * FROM empresas ORDER BY razao_social').fetchall()
+    db    = get_db()
+    busca = request.args.get('q', '').strip()
+    if busca:
+        like = f'%{busca}%'
+        rows = db.execute(
+            'SELECT * FROM empresas WHERE razao_social LIKE ? OR cnpj LIKE ? ORDER BY razao_social',
+            (like, like)).fetchall()
+    else:
+        rows = db.execute('SELECT * FROM empresas ORDER BY razao_social').fetchall()
     db.close()
-    return jsonify([dict(e) for e in empresas])
+    return jsonify([dict(e) for e in rows])
 
 @empresas_bp.route('/api/empresas', methods=['POST'])
 def criar():
@@ -35,7 +42,8 @@ def criar():
              data.get('agencia', ''), data.get('conta_bancaria', ''),
              data.get('tipo_operacao', '')))
         db.commit()
-        empresa = db.execute('SELECT * FROM empresas WHERE cnpj=?', (data['cnpj'].strip(),)).fetchone()
+        empresa = db.execute('SELECT * FROM empresas WHERE cnpj=?',
+                             (data['cnpj'].strip(),)).fetchone()
         db.close()
         return jsonify(dict(empresa)), 201
     except Exception as e:

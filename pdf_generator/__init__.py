@@ -98,13 +98,13 @@ def timbrado_canvas(canvas, doc):
 
 
 class PageCountCanvas(canvas_module.Canvas):
-    """Canvas that knows total page count."""
+    """Canvas com dois passes para exibir total de páginas correto."""
     def __init__(self, *args, **kwargs):
         canvas_module.Canvas.__init__(self, *args, **kwargs)
         self._saved_page_states = []
 
     def showPage(self):
-        self._saved_page_states.append(dict(self.__dict__))
+        self._saved_page_states.append(dict(self.__dict__.copy()))
         self._startPage()
 
     def save(self):
