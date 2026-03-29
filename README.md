@@ -126,11 +126,7 @@ python3 -c "from werkzeug.security import generate_password_hash; print(generate
 
 ```bash
 pip install pyinstaller
-python -m PyInstaller --onefile --noconsole \
-  --add-data "templates;templates" \
-  --add-data "static;static" \
-  --add-data "pdf_generator;pdf_generator" \
-  --name "GeradorAnexos" app.py
+python -m PyInstaller --onefile --noconsole --add-data "templates;templates" --add-data "static;static" --add-data "pdf_generator;pdf_generator"  --name "GeradorAnexos" app.py
 ```
 
 O executável gerado fica em `dist/GeradorAnexos.exe`.

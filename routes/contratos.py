@@ -182,6 +182,7 @@ def atualizar(cid):
              data['gestor_titular_id'], data['gestor_suplente_id'],
              data['fiscal_titular_id'], data['fiscal_suplente_id'], cid))
 
+        # Determinar quais empenhos têm NF associada (para proteção de dados)
         used_emp_ids = {r['empenho_id'] for r in db.execute(
             '''SELECT DISTINCT empenho_id FROM nf_empenhos ne
                JOIN empenhos e ON ne.empenho_id = e.id WHERE e.contrato_id=?''', (cid,)).fetchall()}
@@ -239,6 +240,7 @@ def atualizar(cid):
                      emp.get('banco', ''), emp.get('agencia', ''),
                      emp.get('conta_bancaria', ''), emp.get('tipo_operacao', ''), int(eid)))
             else:
+                # Novo empenho
                 db.execute('''INSERT INTO empenhos
                     (contrato_id, numero, valor_total, saldo_atual, fonte_recurso,
                      codigo_aplicacao, banco, agencia, conta_bancaria, tipo_operacao)

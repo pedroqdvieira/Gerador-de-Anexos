@@ -537,7 +537,7 @@ def gerar_anexo_ix(dados: dict) -> bytes:
 
     contrato = dados['contrato']
     nf = dados['nf']
-    fiscal = dados['fiscal']
+    gestor = dados['gestor']
     empenhos_usados = dados['empenhos_usados']  # list of dicts
     hoje = date.today().strftime('%d/%m/%Y')
 
@@ -628,9 +628,9 @@ def gerar_anexo_ix(dados: dict) -> bytes:
     # pois as células são mescladas verticalmente no original
     num_empenhos = len(empenhos_usados)
     for idx, emp in enumerate(empenhos_usados):
-        saldo_antes = emp['saldo_anterior']
-        valor_usado = emp['valor_usado']
-        saldo_depois = saldo_antes - valor_usado
+        saldo_antes = emp['saldo_anterior']  # Saldo disponível no momento da medição
+        valor_usado = emp['valor_usado']  # Valor usado neste pagamento
+        saldo_depois = saldo_antes - valor_usado  # Saldo após este pagamento
 
         # Medição, mês/ano, NF e valor da NF só aparecem na primeira linha do grupo
         if idx == 0:
@@ -732,9 +732,9 @@ def gerar_anexo_ix(dados: dict) -> bytes:
     story.append(Spacer(1, 1.0 * cm))
 
     # Signature
-    story.append(Paragraph(f'<b>{fiscal["nome"]} – {fiscal["matricula"]}</b>',
+    story.append(Paragraph(f'<b>{gestor["nome"]} – {gestor["matricula"]}</b>',
                             styles['SignatureStyle']))
-    story.append(Paragraph(fiscal.get('titulo', 'Fiscal do Contrato'),
+    story.append(Paragraph(gestor.get('titulo', 'Gestor do Contrato'),
                             styles['SignatureSubStyle']))
 
     build_doc(story, buffer)
@@ -858,6 +858,12 @@ def gerar_ateste(dados: dict) -> bytes:
         ]))
         story.append(liq_t)
         story.append(Spacer(1, 0.15 * cm))
+        story.append(Spacer(1, 0.5 * cm))
+        story.append(Paragraph(
+        '¹ Obrigatório para cada código de fonte/destinação de recurso a que a despesa estiver vinculada.',
+        styles['FootnoteStyle']))
+        story.append(HRFlowable(width=CONTENT_W * 0.4, thickness=0.5, color=BLACK))
+        story.append(Spacer(1, 0.5 * cm))
 
     # Document list
     docs = [
@@ -899,18 +905,11 @@ def gerar_ateste(dados: dict) -> bytes:
 
     story.append(Paragraph(f'<b>{fiscal["nome"]} – {fiscal["matricula"]}</b>',
                             styles['SignatureStyle']))
-    story.append(Paragraph(f'Titulo ({fiscal_titulo})', styles['SignatureSubStyle']))
+    story.append(Paragraph(f'{fiscal_titulo}', styles['SignatureSubStyle']))
     story.append(Spacer(1, 0.8 * cm))
     story.append(Paragraph(f'<b>{gestor["nome"]} – {gestor["matricula"]}</b>',
                             styles['SignatureStyle']))
-    story.append(Paragraph(f'Titulo ({gestor_titulo})', styles['SignatureSubStyle']))
-
-    # Footnote
-    story.append(Spacer(1, 0.5 * cm))
-    story.append(HRFlowable(width=CONTENT_W * 0.4, thickness=0.5, color=BLACK))
-    story.append(Paragraph(
-        '¹ Obrigatório para cada código de fonte/destinação de recurso a que a despesa estiver vinculada.',
-        styles['FootnoteStyle']))
+    story.append(Paragraph(f'{gestor_titulo}', styles['SignatureSubStyle']))
 
     build_doc(story, buffer)
     return buffer.getvalue()
