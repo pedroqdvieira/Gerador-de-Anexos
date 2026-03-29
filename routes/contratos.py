@@ -1,10 +1,11 @@
 from flask import Blueprint, request, jsonify, render_template
 from database import get_db, registrar_alteracao
+from utils import DATE_FMT
 from datetime import date, datetime
 
 contratos_bp = Blueprint('contratos', __name__)
 
-CAMPOS_LEGÍVEIS = {
+FIELD_LABELS = {
     'numero': 'Número', 'empresa_id': 'Empresa', 'vigencia_inicio': 'Vigência Início',
     'vigencia_fim': 'Vigência Fim', 'objeto': 'Objeto', 'processo': 'Processo',
     'preposto': 'Preposto', 'gestor_titular_id': 'Gestor Titular',
@@ -98,10 +99,15 @@ def criar():
     for f in required:
         if not data.get(f):
             return jsonify({'error': f'Campo obrigatório: {f}'}), 400
-    roles_ids = [data['gestor_titular_id'], data['gestor_suplente_id'],
-                 data['fiscal_titular_id'], data['fiscal_suplente_id']]
-    if len(set(roles_ids)) != 4:
-        return jsonify({'error': 'Uma pessoa não pode desempenhar dois papéis no mesmo contrato'}), 400
+    roles_ids = [
+        data.get('gestor_titular_id'), data.get('gestor_suplente_id'),
+        data.get('fiscal_titular_id'), data.get('fiscal_suplente_id'),
+    ]
+    roles_validos = [r for r in roles_ids if r]
+    if len(roles_validos) != 4 or len(set(roles_validos)) != 4:
+        return jsonify({
+            'error': 'Uma pessoa não pode desempenhar dois papéis no mesmo contrato'
+        }), 400
     db = get_db()
     try:
         cur = db.execute('''INSERT INTO contratos
@@ -130,16 +136,22 @@ def criar():
         db.close()
         return jsonify(result), 201
     except Exception as e:
+        db.rollback()
         db.close()
-        return jsonify({'error': str(e)}), 400
+        return jsonify({'error': 'Erro ao salvar contrato'}), 400
 
 @contratos_bp.route('/api/contratos/<int:cid>', methods=['PUT'])
 def atualizar(cid):
     data = request.json
-    roles_ids = [data.get('gestor_titular_id'), data.get('gestor_suplente_id'),
-                 data.get('fiscal_titular_id'), data.get('fiscal_suplente_id')]
-    if len(set(roles_ids)) != 4:
-        return jsonify({'error': 'Uma pessoa não pode desempenhar dois papéis no mesmo contrato'}), 400
+    roles_ids = [
+        data.get('gestor_titular_id'), data.get('gestor_suplente_id'),
+        data.get('fiscal_titular_id'), data.get('fiscal_suplente_id'),
+    ]
+    roles_validos = [r for r in roles_ids if r]
+    if len(roles_validos) != 4 or len(set(roles_validos)) != 4:
+        return jsonify({
+            'error': 'Uma pessoa não pode desempenhar dois papéis no mesmo contrato'
+        }), 400
     db = get_db()
     try:
         # Busca valores anteriores para log
@@ -157,7 +169,7 @@ def atualizar(cid):
                      'fiscal_suplente_id': data['fiscal_suplente_id']}
             for campo in campos:
                 registrar_alteracao(db, 'contratos', cid,
-                    CAMPOS_LEGÍVEIS.get(campo, campo),
+                    FIELD_LABELS.get(campo, campo),
                     anterior[campo], novos[campo])
 
         db.execute('''UPDATE contratos SET numero=?, empresa_id=?, vigencia_inicio=?,
@@ -173,10 +185,25 @@ def atualizar(cid):
         used_emp_ids = {r['empenho_id'] for r in db.execute(
             '''SELECT DISTINCT empenho_id FROM nf_empenhos ne
                JOIN empenhos e ON ne.empenho_id = e.id WHERE e.contrato_id=?''', (cid,)).fetchall()}
-        existing_ids = {r['id'] for r in db.execute('SELECT id FROM empenhos WHERE contrato_id=?', (cid,)).fetchall()}
-        deletable = existing_ids - used_emp_ids
+        existing_ids = {r['id'] for r in db.execute(
+            'SELECT id FROM empenhos WHERE contrato_id=?', (cid,)).fetchall()}
+
+        # IDs enviados pelo frontend (empenhos que devem ser mantidos)
+        ids_no_payload = {
+            int(e['id']) for e in data.get('empenhos', [])
+            if e.get('id') and str(e['id']).strip()
+        }
+
+        # Só deleta empenhos que:
+        # 1. Existem no banco
+        # 2. NÃO vieram no payload (usuário removeu explicitamente)
+        # 3. NÃO têm NF vinculada (protegidos)
+        deletable = existing_ids - ids_no_payload - used_emp_ids
         if deletable:
-            db.execute(f'DELETE FROM empenhos WHERE id IN ({",".join("?" * len(deletable))})', list(deletable))
+            db.execute(
+                f'DELETE FROM empenhos WHERE id IN ({",".join("?" * len(deletable))})',
+                list(deletable),
+            )
 
         for emp in data.get('empenhos', []):
             if not emp.get('numero') or not emp.get('valor_total'):
@@ -188,7 +215,7 @@ def atualizar(cid):
                 if ant_emp:
                     for campo in ['fonte_recurso', 'codigo_aplicacao', 'banco', 'agencia', 'conta_bancaria', 'tipo_operacao']:
                         registrar_alteracao(db, 'empenhos', int(eid),
-                            CAMPOS_LEGÍVEIS.get(campo, campo),
+                            FIELD_LABELS.get(campo, campo),
                             ant_emp[campo], emp.get(campo, ''))
                 db.execute('''UPDATE empenhos SET fonte_recurso=?, codigo_aplicacao=?,
                     banco=?, agencia=?, conta_bancaria=?, tipo_operacao=? WHERE id=?''',
@@ -201,7 +228,7 @@ def atualizar(cid):
                     for campo in ['numero', 'valor_total', 'fonte_recurso', 'codigo_aplicacao',
                                   'banco', 'agencia', 'conta_bancaria', 'tipo_operacao']:
                         registrar_alteracao(db, 'empenhos', int(eid),
-                            CAMPOS_LEGÍVEIS.get(campo, campo),
+                            FIELD_LABELS.get(campo, campo),
                             ant_emp[campo], emp.get(campo if campo != 'numero' else 'numero', ''))
                 db.execute('''UPDATE empenhos SET numero=?, valor_total=?, saldo_atual=?,
                     fonte_recurso=?, codigo_aplicacao=?, banco=?, agencia=?,
@@ -226,8 +253,9 @@ def atualizar(cid):
         db.close()
         return jsonify(result)
     except Exception as e:
+        db.rollback()
         db.close()
-        return jsonify({'error': str(e)}), 400
+        return jsonify({'error': 'Erro ao atualizar contrato'}), 400
 
 @contratos_bp.route('/api/contratos/<int:cid>/prorrogar', methods=['POST'])
 def prorrogar(cid):
@@ -247,15 +275,16 @@ def prorrogar(cid):
         db.execute('''INSERT INTO prorrogacoes
             (contrato_id, vigencia_anterior, vigencia_nova, motivo, data_registro)
             VALUES (?, ?, ?, ?, ?)''',
-            (cid, vigencia_anterior, vigencia_nova, motivo, date.today().strftime('%d/%m/%Y')))
+            (cid, vigencia_anterior, vigencia_nova, motivo, date.today().strftime(DATE_FMT)))
         db.execute('UPDATE contratos SET vigencia_fim=? WHERE id=?', (vigencia_nova, cid))
         registrar_alteracao(db, 'contratos', cid, 'Vigência Fim', vigencia_anterior, vigencia_nova)
         db.commit()
         db.close()
         return jsonify({'ok': True})
     except Exception as e:
+        db.rollback()
         db.close()
-        return jsonify({'error': str(e)}), 400
+        return jsonify({'error': 'Erro ao prorrogar contrato'}), 400
 
 @contratos_bp.route('/api/contratos/<int:cid>/historico-alteracoes')
 def historico_alteracoes(cid):

@@ -11,6 +11,7 @@ permitindo que o restante do código use a mesma API em ambos os casos.
 import os
 import sys
 from datetime import date
+from utils import DATE_FMT
 
 
 # ── Detecta qual banco usar ───────────────────────────────────────────────────
@@ -114,8 +115,18 @@ class DBConn:
     Conexão unificada. Expõe:
       - execute(sql, params) → cursor compatível
       - commit()
+      - rollback()
       - close()
       - cursor()  (para init_db que usa c = conn.cursor())
+
+    Suporta uso como context manager::
+
+        with get_db() as db:
+            db.execute(...)
+            db.commit()
+        # db.close() é chamado automaticamente ao sair do bloco,
+        # inclusive em caso de exceção (sem rollback automático —
+        # o rollback deve ser explícito antes do raise).
     """
     def __init__(self, conn, is_postgres=False):
         self._conn = conn
@@ -150,8 +161,19 @@ class DBConn:
     def commit(self):
         self._conn.commit()
 
+    def rollback(self):
+        self._conn.rollback()
+
     def close(self):
         self._conn.close()
+
+    # ── Context manager ───────────────────────────────────────────────────
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+        return False  # não suprime exceções
 
 
 # ── Fábrica de conexões ───────────────────────────────────────────────────────
@@ -290,7 +312,7 @@ def registrar_alteracao(db, tabela, registro_id, campo, valor_anterior, valor_no
             (tabela, registro_id, campo,
              str(valor_anterior) if valor_anterior is not None else '',
              str(valor_novo)     if valor_novo     is not None else '',
-             date.today().strftime('%d/%m/%Y'))
+             date.today().strftime(DATE_FMT))
         )
 
 

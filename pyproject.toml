@@ -1,6 +1,6 @@
 [project]
 name = "gerador-anexos"
-version = "0.4.0"
+version = "0.5.1"
 description = "Sistema de geração de anexos de pagamento de notas fiscais – SEMED Vila Velha"
 authors = [{ name = "Pedro Quinellato Dutra Vieira" }]
 readme = "README.md"
@@ -22,8 +22,21 @@ dev = [
 
 [tool.project]
 changelog = """
+0.5.0 - refatoraçao do BD, implementaçao de testes e atualizaçao da interface
 0.4.0 – Hospedagem Railway + PostgreSQL + Home dashboard + Login + Manual
 0.3.0 – Meatball menus, ZIP de PDFs, datas dd/mm/yyyy, importador API
 0.2.0 – Histórico paginado, relatório de empenhos, exportação CSV
 0.1.0 – Sistema base: contratos, empenhos, geração de PDFs
 """
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
+[project.optional-dependencies]
+dev = [
+    "pyinstaller>=6.0.0",
+    "pytest>=7.0.0",
+]

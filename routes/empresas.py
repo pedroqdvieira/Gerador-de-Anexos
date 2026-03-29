@@ -4,26 +4,32 @@ from utils import validar_cnpj
 
 empresas_bp = Blueprint('empresas', __name__)
 
+
 @empresas_bp.route('/empresas')
 def listar():
-    db       = get_db()
-    empresas = db.execute('SELECT * FROM empresas ORDER BY razao_social').fetchall()
-    db.close()
+    with get_db() as db:
+        empresas = db.execute(
+            'SELECT * FROM empresas ORDER BY razao_social'
+        ).fetchall()
     return render_template('empresas.html', empresas=[dict(e) for e in empresas])
+
 
 @empresas_bp.route('/api/empresas', methods=['GET'])
 def api_listar():
-    db    = get_db()
     busca = request.args.get('q', '').strip()
-    if busca:
-        like = f'%{busca}%'
-        rows = db.execute(
-            'SELECT * FROM empresas WHERE razao_social LIKE ? OR cnpj LIKE ? ORDER BY razao_social',
-            (like, like)).fetchall()
-    else:
-        rows = db.execute('SELECT * FROM empresas ORDER BY razao_social').fetchall()
-    db.close()
+    with get_db() as db:
+        if busca:
+            like = f'%{busca}%'
+            rows = db.execute(
+                'SELECT * FROM empresas '                'WHERE razao_social LIKE ? OR cnpj LIKE ? '                'ORDER BY razao_social',
+                (like, like),
+            ).fetchall()
+        else:
+            rows = db.execute(
+                'SELECT * FROM empresas ORDER BY razao_social'
+            ).fetchall()
     return jsonify([dict(e) for e in rows])
+
 
 @empresas_bp.route('/api/empresas', methods=['POST'])
 def criar():
@@ -34,21 +40,26 @@ def criar():
         return jsonify({'error': 'CNPJ inválido. Verifique os dígitos informados.'}), 400
     db = get_db()
     try:
-        db.execute('''INSERT INTO empresas
-            (razao_social, cnpj, endereco, banco, agencia, conta_bancaria, tipo_operacao)
-            VALUES (?, ?, ?, ?, ?, ?, ?)''',
-            (data['razao_social'].strip(), data['cnpj'].strip(),
-             data.get('endereco', ''), data.get('banco', ''),
-             data.get('agencia', ''), data.get('conta_bancaria', ''),
-             data.get('tipo_operacao', '')))
+        db.execute(
+            'INSERT INTO empresas '            '(razao_social, cnpj, endereco, banco, agencia, conta_bancaria, tipo_operacao) '            'VALUES (?, ?, ?, ?, ?, ?, ?)',
+            (
+                data['razao_social'].strip(), data['cnpj'].strip(),
+                data.get('endereco', ''), data.get('banco', ''),
+                data.get('agencia', ''), data.get('conta_bancaria', ''),
+                data.get('tipo_operacao', ''),
+            ),
+        )
         db.commit()
-        empresa = db.execute('SELECT * FROM empresas WHERE cnpj=?',
-                             (data['cnpj'].strip(),)).fetchone()
+        empresa = db.execute(
+            'SELECT * FROM empresas WHERE cnpj=?', (data['cnpj'].strip(),)
+        ).fetchone()
         db.close()
         return jsonify(dict(empresa)), 201
     except Exception as e:
+        db.rollback()
         db.close()
-        return jsonify({'error': str(e)}), 400
+        return jsonify({'error': 'Erro ao salvar empresa'}), 400
+
 
 @empresas_bp.route('/api/empresas/<int:eid>', methods=['PUT'])
 def atualizar(eid):
@@ -57,26 +68,31 @@ def atualizar(eid):
         return jsonify({'error': 'CNPJ inválido. Verifique os dígitos informados.'}), 400
     db = get_db()
     try:
-        db.execute('''UPDATE empresas SET razao_social=?, cnpj=?, endereco=?,
-            banco=?, agencia=?, conta_bancaria=?, tipo_operacao=? WHERE id=?''',
-            (data['razao_social'].strip(), data['cnpj'].strip(),
-             data.get('endereco', ''), data.get('banco', ''),
-             data.get('agencia', ''), data.get('conta_bancaria', ''),
-             data.get('tipo_operacao', ''), eid))
+        db.execute(
+            'UPDATE empresas SET '            'razao_social=?, cnpj=?, endereco=?, '            'banco=?, agencia=?, conta_bancaria=?, tipo_operacao=? '            'WHERE id=?',
+            (
+                data['razao_social'].strip(), data['cnpj'].strip(),
+                data.get('endereco', ''), data.get('banco', ''),
+                data.get('agencia', ''), data.get('conta_bancaria', ''),
+                data.get('tipo_operacao', ''), eid,
+            ),
+        )
         db.commit()
         db.close()
         return jsonify({'ok': True})
     except Exception as e:
+        db.rollback()
         db.close()
-        return jsonify({'error': str(e)}), 400
+        return jsonify({'error': 'Erro ao atualizar empresa'}), 400
+
 
 @empresas_bp.route('/api/empresas/<int:eid>', methods=['DELETE'])
 def deletar(eid):
-    db = get_db()
-    db.execute('DELETE FROM empresas WHERE id=?', (eid,))
-    db.commit()
-    db.close()
+    with get_db() as db:
+        db.execute('DELETE FROM empresas WHERE id=?', (eid,))
+        db.commit()
     return jsonify({'ok': True})
+
 
 @empresas_bp.route('/api/cnpj/validar', methods=['POST'])
 def validar():

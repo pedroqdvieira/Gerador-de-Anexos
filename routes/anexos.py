@@ -1,9 +1,12 @@
 import json
+import zipfile
 import io
 import csv
-from datetime import date
+from datetime import date, datetime
 from flask import Blueprint, request, jsonify, render_template, send_file, abort
 from database import get_db
+from routes.contratos import get_contrato_full
+from utils import DATE_FMT
 from pdf_generator import gerar_anexo_iii, gerar_anexo_vi, gerar_anexo_ix, gerar_ateste
 from pypdf import PdfWriter, PdfReader
 
@@ -11,6 +14,14 @@ anexos_bp = Blueprint('anexos', __name__)
 
 MESES = {1:'Janeiro',2:'Fevereiro',3:'Março',4:'Abril',5:'Maio',6:'Junho',
          7:'Julho',8:'Agosto',9:'Setembro',10:'Outubro',11:'Novembro',12:'Dezembro'}
+
+
+def _safe_int(value, default=None):
+    """Converte valor para int com segurança; retorna default se inválido."""
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
 
 def get_dados_for_pdf(db, nf_id):
     nf = db.execute('SELECT * FROM notas_fiscais WHERE id=?', (nf_id,)).fetchone()
@@ -61,7 +72,6 @@ def home():
 
 @anexos_bp.route('/api/dashboard')
 def api_dashboard():
-    from datetime import datetime
     db = get_db()
     hoje = date.today()
 
@@ -139,7 +149,6 @@ def gerar_form():
 @anexos_bp.route('/api/contrato/<int:cid>/dados-formulario')
 def dados_formulario(cid):
     db = get_db()
-    from routes.contratos import get_contrato_full
     cd = get_contrato_full(db, cid)
     db.close()
     if not cd:
@@ -206,6 +215,17 @@ def api_rascunhos():
 @anexos_bp.route('/api/nf/salvar-rascunho', methods=['POST'])
 def salvar_rascunho():
     data = request.json
+
+    # Valida campos obrigatórios antes de abrir o banco
+    gestor_id = data.get('gestor_id')
+    fiscal_id = data.get('fiscal_id')
+    if not gestor_id or not fiscal_id:
+        return jsonify({
+            'error': 'Selecione o gestor e o fiscal do contrato antes de salvar.'
+        }), 400
+    if not data.get('contrato_id'):
+        return jsonify({'error': 'Selecione um contrato.'}), 400
+
     db = get_db()
     # Validar saldo antes de salvar
     for emp_uso in data.get('empenhos_usados', []):
@@ -231,7 +251,8 @@ def salvar_rascunho():
                 ocorrencia_resultados=?, checklist_json=?
                 WHERE id=? AND data_geracao IS NULL AND cancelada=0''',
                 (data['contrato_id'], data['numero_nf'], float(data['valor_nf']),
-                 int(data['mes_referencia']), int(data['ano_referencia']),
+                 _safe_int(data.get('mes_referencia')),
+                 _safe_int(data.get('ano_referencia')),
                  data['periodo_inicio'], data['periodo_fim'], data['numero_medicao'],
                  data['gestor_id'], data['fiscal_id'], data['meio_recebimento'],
                  data.get('data_verificacao_certidoes', ''),
@@ -258,7 +279,8 @@ def salvar_rascunho():
                  checklist_json, cancelada, data_geracao)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, NULL)''',
                 (data['contrato_id'], data['numero_nf'], float(data['valor_nf']),
-                 int(data['mes_referencia']), int(data['ano_referencia']),
+                 _safe_int(data.get('mes_referencia')),
+                 _safe_int(data.get('ano_referencia')),
                  data['periodo_inicio'], data['periodo_fim'], data['numero_medicao'],
                  data['gestor_id'], data['fiscal_id'], data['meio_recebimento'],
                  data.get('data_verificacao_certidoes', ''),
@@ -275,8 +297,11 @@ def salvar_rascunho():
             db.close()
             return jsonify({'nf_id': nf_id})
     except Exception as e:
+        import logging
+        logging.getLogger(__name__).error('Erro em salvar_rascunho: %s', e, exc_info=True)
+        db.rollback()
         db.close()
-        return jsonify({'error': str(e)}), 400
+        return jsonify({'error': f'Erro ao salvar rascunho: {e}'}), 400
 
 @anexos_bp.route('/api/nf/<int:nf_id>/confirmar', methods=['POST'])
 def confirmar_nf(nf_id):
@@ -294,13 +319,14 @@ def confirmar_nf(nf_id):
             db.execute('UPDATE empenhos SET saldo_atual = saldo_atual - ? WHERE id=?',
                        (ne['valor_usado'], ne['empenho_id']))
         db.execute('UPDATE notas_fiscais SET data_geracao=? WHERE id=?',
-                   (date.today().strftime('%d/%m/%Y'), nf_id))
+                   (date.today().strftime(DATE_FMT), nf_id))
         db.commit()
         db.close()
         return jsonify({'ok': True})
     except Exception as e:
+        db.rollback()
         db.close()
-        return jsonify({'error': str(e)}), 400
+        return jsonify({'error': 'Erro ao confirmar NF'}), 400
 
 @anexos_bp.route('/api/nf/<int:nf_id>/cancelar', methods=['POST'])
 def cancelar_nf(nf_id):
@@ -323,12 +349,12 @@ def cancelar_nf(nf_id):
         db.close()
         return jsonify({'ok': True})
     except Exception as e:
+        db.rollback()
         db.close()
-        return jsonify({'error': str(e)}), 400
+        return jsonify({'error': 'Erro ao cancelar NF'}), 400
 
 @anexos_bp.route('/api/nf/<int:nf_id>/pdf/<tipo>')
 def download_pdf(nf_id, tipo):
-    import zipfile
     db = get_db()
     dados = get_dados_for_pdf(db, nf_id)
     db.close()

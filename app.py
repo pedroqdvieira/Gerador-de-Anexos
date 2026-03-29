@@ -11,7 +11,8 @@ def resource_path(relative_path):
     return os.path.join(os.path.dirname(os.path.abspath(__file__)), relative_path)
 
 
-from flask import Flask, redirect, url_for, session
+import logging
+from flask import Flask, redirect, url_for, session, render_template, request
 from database import init_db, USE_POSTGRES
 from routes.pessoas import pessoas_bp
 from routes.empresas import empresas_bp
@@ -24,7 +25,22 @@ app = Flask(
     template_folder=resource_path('templates'),
     static_folder=resource_path('static')
 )
-app.secret_key = os.environ.get('SECRET_KEY', 'semed_vila_velha_2025_secret_dev')
+
+# ── Logging ───────────────────────────────────────────────────────────────────
+_log_level = logging.DEBUG if os.environ.get('FLASK_DEBUG') else logging.INFO
+logging.basicConfig(
+    level=_log_level,
+    format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S',
+)
+logger = logging.getLogger(__name__)
+# Em produção, defina SECRET_KEY como variável de ambiente no Railway.
+# Localmente, gera uma chave aleatória por sessão (não persiste entre reinicios).
+_secret = os.environ.get('SECRET_KEY')
+if not _secret:
+    import secrets as _secrets_mod
+    _secret = _secrets_mod.token_hex(32)
+app.secret_key = _secret
 app.permanent_session_lifetime = timedelta(hours=8)
 
 @app.template_filter('databr')
@@ -53,15 +69,20 @@ def index():
 @app.route('/manual')
 @login_required
 def manual():
-    from flask import render_template
     return render_template('manual.html')
+
+# ── Health check (Railway e monitoramento) ───────────────────────────────────
+@app.route('/health')
+def health():
+    from flask import jsonify
+    return jsonify({'status': 'ok', 'version': '0.4.3'}), 200
+
 
 # ── Proteção global: todas as rotas exigem login ──────────────────────────────
 @app.before_request
 def require_login():
-    from flask import request
     # Rotas que não precisam de login
-    public = {'auth.login', 'auth.logout', 'static'}
+    public = {'auth.login', 'auth.logout', 'static', 'health'}
     if request.endpoint in public:
         return
     if not session.get('logged_in'):

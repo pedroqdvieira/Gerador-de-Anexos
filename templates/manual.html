@@ -1,31 +1,176 @@
 {% extends "base.html" %}
-{% block title %}Manual do Usuário – Gerador de Anexos{% endblock %}
+{% block title %}Manual do Usuário - Gerador de Anexos{% endblock %}
 {% block content %}
 <div class="page-header">
-  <div><h1>Manual do Usuário</h1><p>Guia completo de uso do Gerador de Anexos</p></div>
+  <div>
+    <h1>Manual do Usuário</h1>
+    <p>Guia completo de uso do Gerador de Anexos</p>
+  </div>
 </div>
 
 <style>
-.manual-wrap { max-width: 820px; }
-.manual-toc { background: #f4f7ff; border: 1.5px solid #e0e8ff; border-radius: 12px; padding: 20px 24px; margin-bottom: 28px; }
-.manual-toc h3 { font-size: 13px; font-weight: 700; color: #003087; margin: 0 0 12px; text-transform: uppercase; letter-spacing: .4px; }
-.manual-toc ol { margin: 0; padding-left: 18px; }
-.manual-toc li { margin-bottom: 6px; }
-.manual-toc a { color: #0055cc; text-decoration: none; font-size: 13.5px; }
-.manual-toc a:hover { text-decoration: underline; }
-.manual-section { background: #fff; border: 1.5px solid #eef2f8; border-radius: 14px; padding: 28px 32px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,48,135,.04); }
-.manual-section h2 { font-size: 17px; font-weight: 800; color: #003087; margin: 0 0 6px; display: flex; align-items: center; gap: 10px; }
-.manual-section h2 .sec-num { background: #003087; color: #fff; border-radius: 8px; width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
-.manual-section h3 { font-size: 14px; font-weight: 700; color: #0d1b3e; margin: 20px 0 8px; }
-.manual-section p { font-size: 14px; color: #444; line-height: 1.7; margin: 0 0 10px; }
-.manual-section ul, .manual-section ol { font-size: 14px; color: #444; line-height: 1.8; margin: 0 0 10px; padding-left: 20px; }
-.tip-box { background: #e8f9f0; border-left: 4px solid #0a7a4e; border-radius: 0 8px 8px 0; padding: 12px 16px; margin: 12px 0; font-size: 13.5px; color: #0a7a4e; }
-.warn-box { background: #fff8e8; border-left: 4px solid #f0a500; border-radius: 0 8px 8px 0; padding: 12px 16px; margin: 12px 0; font-size: 13.5px; color: #b07800; }
-.step-list { counter-reset: step; list-style: none; padding: 0; }
-.step-list li { counter-increment: step; padding: 10px 0 10px 44px; position: relative; border-bottom: 1px solid #f0f4fb; font-size: 14px; color: #333; line-height: 1.6; }
-.step-list li:last-child { border-bottom: none; }
-.step-list li::before { content: counter(step); position: absolute; left: 0; top: 10px; width: 28px; height: 28px; background: #003087; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; }
-.kbd { display: inline-block; background: #f0f4fb; border: 1px solid #ccd5e8; border-radius: 5px; padding: 2px 7px; font-size: 12px; font-family: monospace; color: #003087; }
+  .manual-wrap {
+    max-width: 820px;
+  }
+
+  .manual-toc {
+    background: #f4f7ff;
+    border: 1.5px solid #e0e8ff;
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 28px;
+  }
+
+  .manual-toc h3 {
+    font-size: 13px;
+    font-weight: 700;
+    color: #003087;
+    margin: 0 0 12px;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+  }
+
+  .manual-toc ol {
+    margin: 0;
+    padding-left: 18px;
+  }
+
+  .manual-toc li {
+    margin-bottom: 6px;
+  }
+
+  .manual-toc a {
+    color: #0055cc;
+    text-decoration: none;
+    font-size: 13.5px;
+  }
+
+  .manual-toc a:hover {
+    text-decoration: underline;
+  }
+
+  .manual-section {
+    background: #fff;
+    border: 1.5px solid #eef2f8;
+    border-radius: 14px;
+    padding: 28px 32px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0, 48, 135, .04);
+  }
+
+  .manual-section h2 {
+    font-size: 17px;
+    font-weight: 800;
+    color: #003087;
+    margin: 0 0 6px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .manual-section h2 .sec-num {
+    background: #003087;
+    color: #fff;
+    border-radius: 8px;
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+
+  .manual-section h3 {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0d1b3e;
+    margin: 20px 0 8px;
+  }
+
+  .manual-section p {
+    font-size: 14px;
+    color: #444;
+    line-height: 1.7;
+    margin: 0 0 10px;
+  }
+
+  .manual-section ul,
+  .manual-section ol {
+    font-size: 14px;
+    color: #444;
+    line-height: 1.8;
+    margin: 0 0 10px;
+    padding-left: 20px;
+  }
+
+  .tip-box {
+    background: #e8f9f0;
+    border-left: 4px solid #0a7a4e;
+    border-radius: 0 8px 8px 0;
+    padding: 12px 16px;
+    margin: 12px 0;
+    font-size: 13.5px;
+    color: #0a7a4e;
+  }
+
+  .warn-box {
+    background: #fff8e8;
+    border-left: 4px solid #f0a500;
+    border-radius: 0 8px 8px 0;
+    padding: 12px 16px;
+    margin: 12px 0;
+    font-size: 13.5px;
+    color: #b07800;
+  }
+
+  .step-list {
+    counter-reset: step;
+    list-style: none;
+    padding: 0;
+  }
+
+  .step-list li {
+    counter-increment: step;
+    padding: 10px 0 10px 44px;
+    position: relative;
+    border-bottom: 1px solid #f0f4fb;
+    font-size: 14px;
+    color: #333;
+    line-height: 1.6;
+  }
+
+  .step-list li:last-child {
+    border-bottom: none;
+  }
+
+  .step-list li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0;
+    top: 10px;
+    width: 28px;
+    height: 28px;
+    background: #003087;
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .kbd {
+    display: inline-block;
+    background: #f0f4fb;
+    border: 1px solid #ccd5e8;
+    border-radius: 5px;
+    padding: 2px 7px;
+    font-size: 12px;
+    font-family: monospace;
+    color: #003087;
+  }
 </style>
 
 <div class="manual-wrap">
@@ -35,11 +180,15 @@
     <h3>Índice</h3>
     <ol>
       <li><a href="#visao-geral">Visão Geral do Sistema</a></li>
+      <li><a href="#dashboard">Dashboard (Home)</a></li>
       <li><a href="#primeiros-passos">Primeiros Passos (Configuração Inicial)</a></li>
       <li><a href="#contratos">Cadastro de Contratos e Empenhos</a></li>
+      <li><a href="#protecao-empenhos">Proteção de Empenhos com NF</a></li>
+      <li><a href="#delecao-empenhos">Deleção de Empenhos</a></li>
       <li><a href="#gerar-anexos">Gerar Anexos de Pagamento</a></li>
       <li><a href="#historico">Histórico de Pagamentos</a></li>
       <li><a href="#empresas-pessoas">Empresas e Pessoas</a></li>
+      <li><a href="#devs">Guia para Desenvolvedores</a></li>
       <li><a href="#duvidas">Dúvidas Frequentes</a></li>
     </ol>
   </div>
@@ -47,111 +196,388 @@
   <!-- 1 -->
   <div class="manual-section" id="visao-geral">
     <h2><span class="sec-num">1</span> Visão Geral do Sistema</h2>
-    <p>O Gerador de Anexos é um sistema desenvolvido para a SEMED – Secretaria Municipal de Educação de Vila Velha. Seu objetivo é automatizar a geração dos documentos obrigatórios no processo de pagamento de notas fiscais de contratos municipais.</p>
+    <p>O Gerador de Anexos é um sistema desenvolvido para a SEMED - Secretaria Municipal de Educação de Vila Velha. Seu
+      objetivo é automatizar a geração dos documentos obrigatórios no processo de pagamento de notas fiscais de
+      contratos municipais.</p>
     <p>O sistema gera automaticamente quatro documentos em PDF:</p>
     <ul>
-      <li><strong>Anexo III</strong> – Registro de ocorrências na execução do contrato</li>
-      <li><strong>Anexo VI</strong> – Checklist de verificação de documentos e certidões</li>
-      <li><strong>Anexo IX</strong> – Planilha de medição e controle de saldo de empenho</li>
-      <li><strong>Ateste</strong> – Documento de ateste do fiscal do contrato (Decreto nº 157/2025)</li>
+      <li><strong>Anexo III:</strong> Registro de ocorrências na execução do contrato</li>
+      <li><strong>Anexo VI:</strong> Checklist de verificação de documentos e certidões</li>
+      <li><strong>Anexo IX:</strong> Planilha de medição e controle de saldo de empenho</li>
+      <li><strong>Ateste:</strong> Documento de ateste do fiscal do contrato (Decreto nº 157/2025)</li>
     </ul>
-    <div class="tip-box">💡 Todos os documentos são gerados com o papel timbrado da Prefeitura de Vila Velha automaticamente.</div>
+    <div class="tip-box">💡 Todos os documentos são gerados com o papel timbrado da Prefeitura de Vila Velha
+      automaticamente.</div>
     <h3>Navegação</h3>
-    <p>O menu superior dá acesso a todas as seções. A <strong>Home</strong> exibe um painel com resumo dos contratos e empenhos. As demais seções são: Gerar Anexos, Histórico, Contratos, Empresas e Pessoas.</p>
+    <p>O menu superior dá acesso a todas as seções. A <strong>Home</strong> exibe um painel com resumo dos contratos e
+      empenhos. As demais seções são: Dashboard, Gerar Anexos, Histórico, Contratos, Empresas, Pessoas e Guia de
+      Desenvolvedores.</p>
   </div>
 
   <!-- 2 -->
-  <div class="manual-section" id="primeiros-passos">
-    <h2><span class="sec-num">2</span> Primeiros Passos</h2>
-    <p>Antes de gerar qualquer anexo, você precisa cadastrar os dados básicos do contrato. Siga esta ordem:</p>
-    <ol class="step-list">
-      <li>Acesse <strong>Pessoas</strong> e cadastre todos os gestores e fiscais que assinarão os documentos. Você precisará do nome completo e da matrícula de cada um.</li>
-      <li>Acesse <strong>Empresas</strong> e cadastre a empresa contratada com CNPJ, dados de endereço e dados bancários (banco, agência e conta).</li>
-      <li>Acesse <strong>Contratos</strong> e cadastre o contrato, informando número, objeto, vigência, processo, preposto e os quatro responsáveis (gestor titular, gestor suplente, fiscal titular e fiscal suplente). Adicione também os empenhos vinculados ao contrato.</li>
-      <li>Com o contrato cadastrado, acesse <strong>Gerar Anexos</strong> para registrar uma nota fiscal.</li>
-    </ol>
-    <div class="warn-box">⚠ Uma pessoa não pode ocupar dois papéis no mesmo contrato. O sistema bloqueia essa situação automaticamente.</div>
+  <div class="manual-section" id="dashboard">
+    <h2><span class="sec-num">2</span> Dashboard (Home)</h2>
+    <p>A página inicial do sistema oferece uma visão rápida do status do seu ambiente de trabalho.</p>
+    <h3>Painéis informativos</h3>
+    <ul>
+      <li><strong>Total de Contratos:</strong> Número total de contratos cadastrados</li>
+      <li><strong>Contratos Vigentes:</strong> Contratos em período ativo (data de hoje está entre vigência início e
+        fim)</li>
+      <li><strong>Empenhos Ativos:</strong> Empenhos com saldo disponível (saldo_atual > 0)</li>
+      <li><strong>NFs Registradas:</strong> Total de notas fiscais confirmadas (não canceladas) no sistema</li>
+    </ul>
+    <h3>Acesso rápido</h3>
+    <p>Botões de atalho permitem navegar direto para as funções principais: Novo Contrato, Gerar Anexos ou ver o
+      Histórico completo.</p>
+    <div class="tip-box">💡 Os números são atualizados automaticamente. Não é necessário recarregar a página.</div>
   </div>
 
   <!-- 3 -->
-  <div class="manual-section" id="contratos">
-    <h2><span class="sec-num">3</span> Contratos e Empenhos</h2>
-    <h3>Cadastrando um contrato</h3>
-    <p>Clique em <strong>+ Novo Contrato</strong>. Preencha todos os campos obrigatórios (marcados com *). O número do contrato deve estar no formato <span class="kbd">NNN/AAAA</span> (ex: 112/2025).</p>
-    <p>Cada contrato pode ter um ou mais empenhos. Clique em <strong>+ Empenho</strong> para adicionar. O saldo atual é preenchido automaticamente com o valor total na criação, mas pode ser ajustado manualmente se necessário.</p>
-    <h3>Alertas de vencimento</h3>
-    <p>Na listagem de contratos, cada linha tem um indicador de status na borda esquerda:</p>
-    <ul>
-      <li><strong style="color:#0a7a4e">Verde</strong> – Contrato vigente</li>
-      <li><strong style="color:#f0a500">Amarelo</strong> – Vence em até 30 dias</li>
-      <li><strong style="color:#c00">Vermelho</strong> – Vigência encerrada</li>
-    </ul>
-    <p>Passe o mouse sobre o badge de status para ver a data exata de vencimento.</p>
-    <h3>Prorrogando a vigência</h3>
-    <p>Clique no menu <span class="kbd">···</span> do contrato e selecione <strong>Prorrogar vigência</strong>. Informe a nova data e o motivo (número do Termo Aditivo, por exemplo). O histórico de prorrogações fica registrado automaticamente.</p>
-    <h3>Relatório de empenhos</h3>
-    <p>O menu <span class="kbd">···</span> também oferece <strong>Relatório de empenhos</strong>, que mostra todo o histórico de uso de cada empenho com as NFs vinculadas. Pode ser exportado em CSV.</p>
+  <div class="manual-section" id="primeiros-passos">
+    <h2><span class="sec-num">3</span> Primeiros Passos</h2>
+    <p>Antes de gerar qualquer anexo, você precisa cadastrar os dados básicos do contrato. Siga esta ordem:</p>
+    <ol class="step-list">
+      <li>Acesse <strong>Pessoas</strong> e cadastre todos os gestores e fiscais que assinarão os documentos. Você
+        precisará do nome completo e da matrícula de cada um.</li>
+      <li>Acesse <strong>Empresas</strong> e cadastre a empresa contratada com CNPJ, dados de endereço e dados bancários
+        (banco, agência e conta).</li>
+      <li>Acesse <strong>Contratos</strong> e cadastre o contrato, informando número, objeto, vigência, processo,
+        preposto e os quatro responsáveis (gestor titular, gestor suplente, fiscal titular e fiscal suplente). Adicione
+        também os empenhos vinculados ao contrato.</li>
+      <li>Com o contrato cadastrado, acesse <strong>Gerar Anexos</strong> para registrar uma nota fiscal.</li>
+    </ol>
+    <div class="warn-box">⚠ Uma pessoa não pode ocupar dois papéis no mesmo contrato. O sistema bloqueia essa situação
+      automaticamente.</div>
   </div>
 
   <!-- 4 -->
-  <div class="manual-section" id="gerar-anexos">
-    <h2><span class="sec-num">4</span> Gerar Anexos de Pagamento</h2>
-    <p>Esta é a função principal do sistema. Acesse pelo menu <strong>Gerar Anexos</strong> ou pelo botão na Home.</p>
-    <ol class="step-list">
-      <li><strong>Selecione o contrato.</strong> Os dados da empresa, empenhos e responsáveis são carregados automaticamente.</li>
-      <li><strong>Preencha as informações da NF:</strong> número da nota fiscal, valor, período de referência, número da medição, gestor/fiscal que assinará e como a documentação foi recebida.</li>
-      <li><strong>Distribua o valor nos empenhos.</strong> O total informado nos empenhos deve ser igual ao valor da NF. O sistema valida em tempo real e bloqueia se o saldo for insuficiente.</li>
-      <li><strong>Preencha o Anexo III</strong> (ocorrências). Se não houve ocorrências, apenas marque "Não" e avance.</li>
-      <li><strong>Preencha o Anexo VI</strong> (checklist). Marque cada item como Sim, Não ou N/A conforme a situação da documentação.</li>
-      <li><strong>Revise</strong> e clique em <strong>Confirmar e Gerar PDFs</strong>. O saldo dos empenhos é descontado neste momento.</li>
-    </ol>
-    <div class="tip-box">💡 Você pode salvar um <strong>rascunho</strong> antes de confirmar. O rascunho não desconta o saldo do empenho — isso só acontece na confirmação.</div>
-    <h3>Baixando os PDFs</h3>
-    <p>Após confirmar, o sistema exibe os links de download no Histórico. Você pode baixar cada anexo individualmente ou todos de uma vez em um arquivo <span class="kbd">.zip</span> com os 4 PDFs separados.</p>
-    <h3>Cancelando uma NF</h3>
-    <p>No Histórico, clique no menu <span class="kbd">···</span> da NF e selecione <strong>Cancelar NF</strong>. O saldo dos empenhos é restaurado automaticamente. NFs canceladas ficam visíveis no histórico marcadas em vermelho.</p>
-    <div class="warn-box">⚠ O cancelamento é irreversível. Uma NF cancelada não pode ser reativada — você precisaria gerar uma nova.</div>
+  <div class="manual-section" id="contratos">
+    <h2><span class="sec-num">4</span> Contratos e Empenhos</h2>
+    <h3>Cadastrando um contrato</h3>
+    <p>Clique em <strong>+ Novo Contrato</strong>. Preencha todos os campos obrigatórios (marcados com *). O número do
+      contrato deve estar no formato <span class="kbd">NNN/AAAA</span> (ex: 112/2025).</p>
+    <p>Cada contrato pode ter um ou mais empenhos. Clique em <strong>+ Empenho</strong> para adicionar. O saldo atual é
+      preenchido automaticamente com o valor total na criação, mas pode ser ajustado manualmente se necessário.</p>
+    <h3>Alertas de vencimento</h3>
+    <p>Na listagem de contratos, cada linha tem um indicador de status na borda esquerda:</p>
+    <ul>
+      <li><strong style="color:#0a7a4e">Verde:</strong> Contrato vigente</li>
+      <li><strong style="color:#f0a500">Amarelo:</strong> Vence em até 30 dias</li>
+      <li><strong style="color:#c00">Vermelho:</strong> Vigência encerrada</li>
+    </ul>
+    <p>Passe o mouse sobre o badge de status para ver a data exata de vencimento.</p>
+    <h3>Prorrogando a vigência</h3>
+    <p>Clique no menu <span class="kbd">···</span> do contrato e selecione <strong>Prorrogar vigência</strong>. Informe
+      a nova data e o motivo (número do Termo Aditivo, por exemplo). O histórico de prorrogações fica registrado
+      automaticamente.</p>
+    <h3>Histórico de alterações</h3>
+    <p>Toda alteração feita em um contrato e seus empenhos fica registrada com data e hora. Você pode consultar o
+      histórico clicando no menu <span class="kbd">···</span> e selecionando <strong>Histórico de Alterações</strong>. O
+      histórico inclui:</p>
+    <ul>
+      <li>Datas de criação e atualização</li>
+      <li>Mudanças de vigência</li>
+      <li>Adição e remoção de empenhos</li>
+      <li>Ajustes de valores e saldos</li>
+      <li>Prorrogações registradas</li>
+    </ul>
+    <div class="tip-box">💡 O histórico é útil para auditorias e para recuperar informações sobre contratos anteriores.
+    </div>
+    <h3>Relatório de empenhos</h3>
+    <p>O menu <span class="kbd">···</span> também oferece <strong>Relatório de empenhos</strong>, que exibe:</p>
+    <ul>
+      <li>Lista de todos os empenhos do contrato</li>
+      <li>Valor total, saldo atual e saldo utilizado</li>
+      <li>Todas as notas fiscais vinculadas, com valores pagos</li>
+      <li>Data de criação e última atualização de cada empenho</li>
+      <li>Proteção de dados: se o empenho tem NF vinculada, campos financeiros não podem ser editados</li>
+    </ul>
+    <p>O relatório pode ser exportado em CSV para análise em planilhas.</p>
   </div>
 
   <!-- 5 -->
-  <div class="manual-section" id="historico">
-    <h2><span class="sec-num">5</span> Histórico de Pagamentos</h2>
-    <p>O Histórico exibe todas as NFs registradas no sistema, com busca e filtros.</p>
-    <h3>Filtrando</h3>
-    <p>Use o campo de busca para encontrar NFs por qualquer campo (número do contrato, empresa, número da NF, número da medição ou data). Você também pode filtrar por contrato específico usando o seletor.</p>
-    <h3>Paginação</h3>
-    <p>Escolha quantos registros ver por página (5, 10, 20, 50, 100 ou Todos). Use os botões de navegação ou clique diretamente no número da página.</p>
-    <h3>Exportando</h3>
-    <p>Clique em <strong>Exportar CSV</strong> para baixar o histórico em formato compatível com Excel. Se um contrato estiver selecionado no filtro, o CSV será exportado apenas para aquele contrato.</p>
+  <div class="manual-section" id="protecao-empenhos">
+    <h2><span class="sec-num">5</span> Proteção de Empenhos com NF</h2>
+    <p>O sistema impede alterações em empenhos que já possuem notas fiscais vinculadas. Esta é uma proteção de dados
+      importante para garantir a integridade do histórico financeiro.</p>
+    <h3>Como funciona</h3>
+    <p>Quando um empenho tem uma ou mais NFs confirmadas (não canceladas), o sistema:</p>
+    <ul>
+      <li>Permite editar apenas dados não-financeiros (dados bancários, descrição, etc.)</li>
+      <li>Bloqueia alterações no valor total e saldo</li>
+      <li>Impede a deleção do empenho enquanto as NFs existirem</li>
+      <li>Mantém os valores históricos no Anexo IX intactos para auditoria</li>
+    </ul>
+    <h3>Quando posso editar um empenho?</h3>
+    <p>Você pode editar livremente um empenho se:</p>
+    <ul>
+      <li>Ele foi criado mas nenhuma NF foi confirmada ainda</li>
+      <li>Todas as NFs vinculadas foram canceladas</li>
+    </ul>
+    <div class="warn-box">⚠ Se você tiver cancelado uma NF a propósito para editar o empenho, tenha cuidado: ao
+      cancelar, o saldo é restaurado. Se fizer nova edição, certifique-se dos valores antes de gerar nova NF.</div>
+    <h3>Cenários de proteção</h3>
+    <ul>
+      <li><strong>Cenário 1:</strong> Empenho de R$ 10.000, sem NF → Pode editar valor, saldo, dados bancários
+        livremente</li>
+      <li><strong>Cenário 2:</strong> Empenho de R$ 10.000, com NF de R$ 5.000 → Pode editar dados bancários, mas não
+        valor/saldo</li>
+      <li><strong>Cenário 3:</strong> Cancelou a NF de R$ 5.000 → Agora pode editar novamente (retornou ao Cenário 1)
+      </li>
+    </ul>
   </div>
 
   <!-- 6 -->
-  <div class="manual-section" id="empresas-pessoas">
-    <h2><span class="sec-num">6</span> Empresas e Pessoas</h2>
-    <h3>Empresas</h3>
-    <p>Cadastre aqui as empresas contratadas. O CNPJ é validado automaticamente com o algoritmo da Receita Federal — CNPJs inválidos são rejeitados. Os dados bancários (banco, agência e conta) informados aqui são usados como padrão, mas podem ser sobrescritos em cada empenho.</p>
-    <h3>Pessoas</h3>
-    <p>Cadastre gestores e fiscais com nome completo e matrícula. A matrícula deve ser única — o sistema bloqueia duplicatas. Uma vez vinculada a contratos e NFs, uma pessoa não pode ser excluída sem antes remover os vínculos.</p>
-    <div class="tip-box">💡 Use o menu <span class="kbd">···</span> em qualquer linha para editar ou excluir o registro.</div>
+  <div class="manual-section" id="delecao-empenhos">
+    <h2><span class="sec-num">6</span> Deleção, Cancelamento e Anulaçã de Empenhos</h2>
+    <p>O sistema oferece três operaçãs distintas para gerenciar empenhos conforme a situaçã:</p>
+
+    <h3>Deleção de Empenho (Remover por completo)</h3>
+    <p>Use quando o empenho foi criado por erro e nunca teve NF associada.</p>
+    <ul>
+      <li><strong>Modal de Empenhos:</strong> Clique em "Deletar" para remover um empenho sem NF</li>
+      <li><strong>Proteção:</strong> Empenhos com NF confirmada não podem ser deletados</li>
+      <li><strong>Efeito:</strong> Empenho é completamente removido do banco de dados</li>
+      <li><strong>⚠ Aviso:</strong> Deleção é irreversível. O histórico será perdido.</li>
+    </ul>
+    <div class="tip-box">💡 Se precisar preservar o histórico, use "Cancelar" em vez de deletar.</div>
+
+    <h3>Cancelamento de Empenho (Bloqueia novo uso)</h3>
+    <p>Use quando um empenho não pode mais ser usado (erro na emissã, classificaçã orçamentária incorreta, fim do
+      contrato, etc.). NFs já pagas continuam registradas e não há reembolso.</p>
+    <ul>
+      <li><strong>Como fazer:</strong> Na modal de Empenhos, clique em "Cancelar"</li>
+      <li><strong>Efeito:</strong> Empenho marcado como "Cancelado" (em vermelho na busca)</li>
+      <li><strong>Restriçã:</strong> Empenho cancelado NÃO pode ser usado em novas NFs</li>
+      <li><strong>Histórico:</strong> NFs já pagas continuam visíveis e registradas</li>
+      <li><strong>Não é editável:</strong> Um empenho cancelado não pode ser editado nem anulado</li>
+    </ul>
+    <div class="warn-box">⚠ Cancelamento é irreversível. Considere se "Anulaçã Parcial" não seria mais apropriado.</div>
+
+    <h3>Anulaçã de Empenho (Correçã técnica)</h3>
+    <p>Use para correçãs técnicas do valor do empenho (anulação parcial allowed). Permite manter as NFs já pagas e
+      ajustar o valor total.</p>
+    <ul>
+      <li><strong>Exemplos de uso:</strong> Reduzir valor de R$ 1000 para R$ 700 (anulação parcial); corrigir erro de
+        digitaçã</li>
+      <li><strong>Como fazer:</strong> Na modal de Empenhos, clique em "Anular" ou "Editar Anulaçã"</li>
+      <li><strong>Processo:</strong>
+        <ol>
+          <li>Popup solicita novo valor total</li>
+          <li>Sistema valida: novo valor não pode ser menor que valor já pago</li>
+          <li>Se validado, saldo é recalculado automaticamente</li>
+        </ol>
+      </li>
+      <li><strong>Cálculo do saldo:</strong> Novo Saldo = Novo Valor Total - Valor Já Pago</li>
+      <li><strong>Efeito:</strong> Empenho marcado como "Anulado" (em laranja na busca)</li>
+      <li><strong>NFs pagas:</strong> Continuam registradas, sem reembolso</li>
+      <li><strong>Exemplo prático:</strong>
+        <ul>
+          <li>Empenho inicial: R$ 1.000</li>
+          <li>NF1 paga: R$ 600</li>
+          <li>Anulação para: R$ 700</li>
+          <li>Novo saldo: R$ 100 (700 - 600)</li>
+          <li>Status: Marcado como "Anulado"</li>
+        </ul>
+      </li>
+    </ul>
+
+    <h3>Impacto na geraçã de NFs</h3>
+    <p><strong>Empenhos com status "Cancelado" ou "Anulado" não podem ser usados em novas NFs.</strong> Se tentar criar
+      uma NF com valor em empenho cancelado/anulado, o sistema exibirá erro: "Empenho XXX: está cancelado/anulado e não
+      pode ser usado em novas NFs."</p>
+
+    <h3>Busca e Transparência</h3>
+    <p>Todos os empenhos aparecem na busca e relatóios, com indicaçã visual do status:</p>
+    <ul>
+      <li><span class="badge badge-info">Ativo</span> - Pode ser usado em novas NFs (padrã)</li>
+      <li><span class="badge badge-danger">Cancelado</span> - Bloqueado para novo uso</li>
+      <li><span class="badge badge-warning">Anulado</span> - Correçã técnica realizada</li>
+    </ul>
   </div>
 
   <!-- 7 -->
+  <div class="manual-section" id="gerar-anexos">
+    <h2><span class="sec-num">7</span> Gerar Anexos de Pagamento</h2>
+    <p>Esta é a função principal do sistema. Acesse pelo menu <strong>Gerar Anexos</strong> ou pelo botão na Home.</p>
+    <ol class="step-list">
+      <li><strong>Selecione o contrato.</strong> Os dados da empresa, empenhos e responsáveis são carregados
+        automaticamente.</li>
+      <li><strong>Preencha as informações da NF:</strong> número da nota fiscal, valor, período de referência, número da
+        medição, gestor/fiscal que assinará e como a documentação foi recebida.</li>
+      <li><strong>Distribua o valor nos empenhos.</strong> O total informado nos empenhos deve ser igual ao valor da NF.
+        O sistema valida em tempo real e bloqueia se o saldo for insuficiente.</li>
+      <li><strong>Preencha o Anexo III</strong> (ocorrências). Se não houve ocorrências, apenas marque "Não" e avance.
+      </li>
+      <li><strong>Preencha o Anexo VI</strong> (checklist). Marque cada item como Sim, Não ou N/A conforme a situação da
+        documentação.</li>
+      <li><strong>Revise</strong> e clique em <strong>Confirmar e Gerar PDFs</strong>. O saldo dos empenhos é descontado
+        neste momento.</li>
+    </ol>
+    <h3>Rascunhos</h3>
+    <p>Você pode interromper o preenchimento e salvar um <strong>rascunho</strong> antes de confirmar. Características
+      dos rascunhos:</p>
+    <ul>
+      <li>O rascunho não desconta o saldo dos empenhos</li>
+      <li>Apenas você pode ver seus rascunhos (os dados são armazenados em sua sessão)</li>
+      <li>Você pode retomar um rascunho clicando em <strong>Continuar</strong> na listagem de histórico</li>
+      <li>Rascunhos com mais de 30 dias são automaticamente limpos</li>
+      <li>Se você confirmar e gerar os PDFs, o rascunho é convertido em NF oficial</li>
+    </ul>
+    <div class="tip-box">💡 Use rascunhos para revisar antes de confirmar, especialmente em valores altos. Você pode
+      revisar tudo sem risco de descontar saldos.</div>
+    <h3>Baixando os PDFs</h3>
+    <p>Após confirmar, o sistema exibe os links de download no Histórico. Você pode baixar cada anexo individualmente ou
+      todos de uma vez em um arquivo <span class="kbd">.zip</span> com os 4 PDFs separados.</p>
+    <h3>Cancelando uma NF</h3>
+    <p>No Histórico, clique no menu <span class="kbd">···</span> da NF e selecione <strong>Cancelar NF</strong>. O saldo
+      dos empenhos é restaurado automaticamente. NFs canceladas ficam visíveis no histórico marcadas em vermelho.</p>
+    <div class="warn-box">⚠ O cancelamento é irreversível. Uma NF cancelada não pode ser reativada — você precisaria
+      gerar uma nova.</div>
+  </div>
+
+  <!-- 8 -->
+  <div class="manual-section" id="historico">
+    <h2><span class="sec-num">8</span> Histórico de Pagamentos</h2>
+    <p>O Histórico exibe todas as NFs registradas no sistema, com busca e filtros.</p>
+    <h3>Filtrando</h3>
+    <p>Use o campo de busca para encontrar NFs por qualquer campo (número do contrato, empresa, número da NF, número da
+      medição ou data). Você também pode filtrar por contrato específico usando o seletor.</p>
+    <h3>Paginação</h3>
+    <p>Escolha quantos registros ver por página (5, 10, 20, 50, 100 ou Todos). Use os botões de navegação ou clique
+      diretamente no número da página.</p>
+    <h3>Exportando</h3>
+    <p>Clique em <strong>Exportar CSV</strong> para baixar o histórico em formato compatível com Excel. Se um contrato
+      estiver selecionado no filtro, o CSV será exportado apenas para aquele contrato.</p>
+  </div>
+
+  <!-- 9 -->
+  <div class="manual-section" id="empresas-pessoas">
+    <h2><span class="sec-num">9</span> Empresas e Pessoas</h2>
+    <h3>Empresas</h3>
+    <p>Cadastre aqui as empresas contratadas. O CNPJ é validado automaticamente com o algoritmo da Receita Federal, onde
+      CNPJs inválidos são rejeitados. Os dados bancários (banco, agência e conta) informados aqui são usados como
+      padrão, mas podem ser sobrescritos em cada empenho.</p>
+    <p>Os dados de endereço, razão social e CNPJ são importantes para o preenchimento dos documentos fiscais.
+      Mantenha-os sempre atualizados.</p>
+    <h3>Pessoas</h3>
+    <p>Cadastre gestores e fiscais com nome completo e matrícula. A matrícula deve ser única pois o sistema bloqueia
+      duplicatas. Uma vez vinculada a contratos e NFs, uma pessoa não pode ser excluída sem antes remover os vínculos.
+    </p>
+    <div class="tip-box">💡 Use o menu <span class="kbd">···</span> em qualquer linha para editar ou excluir o registro.
+    </div>
+  </div>
+
+  <!-- 10 -->
+  <div class="manual-section" id="devs">
+    <h2><span class="sec-num">10</span> Guia para Desenvolvedores</h2>
+    <h3>Arquitetura da aplicação</h3>
+    <p>O sistema segue uma arquitetura modular Flask com Blueprint-based routing:</p>
+    <ul>
+      <li><strong>database.py:</strong> Camada de abstração de dados com suporte dual para SQLite (desenvolvimento) e
+        PostgreSQL (produção)</li>
+      <li><strong>routes/:</strong> Módulos blueprint para cada funcionalidade (contratos, anexos, pessoas, empresas,
+        autenticação)</li>
+      <li><strong>pdf_generator/:</strong> Geração de PDFs usando ReportLab com assets estáticos (papel timbrado)</li>
+      <li><strong>templates/:</strong> Jinja2 templates com Vanilla JS para interações frontend</li>
+      <li><strong>static/:</strong> CSS, JS e assets (papel timbrado em PNG)</li>
+    </ul>
+    <h3>Stack tecnológico</h3>
+    <ul>
+      <li><strong>Backend:</strong> Python 3.x + Flask</li>
+      <li><strong>Banco de dados:</strong> SQLite (dev) / PostgreSQL (prod via Railway)</li>
+      <li><strong>PDF:</strong> ReportLab + pypdf</li>
+      <li><strong>Frontend:</strong> Jinja2 + Vanilla JS + CSS</li>
+      <li><strong>Deploy:</strong> Railway (PostgreSQL, push via GitHub)</li>
+    </ul>
+    <h3>Fluxo de proteção de dados: Empenhos e NFs</h3>
+    <p>A integridade de dados é garantida pela tabela <span class="kbd">nf_empenhos</span>, que cria um vínculo imutável
+      entre notas fiscais e empenhos:</p>
+    <ol>
+      <li>Quando uma NF é confirmada, cria-se um registro em <span class="kbd">nf_empenhos</span> para cada empenho
+        utilizado</li>
+      <li>O campo <span class="kbd">saldo_anterior</span> é um snapshot do saldo do empenho no momento da NF</li>
+      <li>O campo <span class="kbd">valor_usado</span> armazena quanto foi descontado do empenho</li>
+      <li>Queries relatórios utilizam <span class="kbd">SELECT * FROM nf_empenhos WHERE empenho_id = X</span> para
+        detectar proteção</li>
+      <li>Edições de empenhos com NF vinculada são bloqueadas no backend (verificar <span
+          class="kbd">used_emp_ids</span>)</li>
+    </ol>
+    <h3>Endpoints API importantes</h3>
+    <ul>
+      <li><strong>GET /api/contratos:</strong> Lista contratos com métricas</li>
+      <li><strong>POST /api/contratos:</strong> Cria contrato + empenhos</li>
+      <li><strong>PUT /api/contratos/&lt;id&gt;:</strong> Edita contrato com proteção de empenhos</li>
+      <li><strong>DELETE /api/empenhos/&lt;id&gt;:</strong> Deleta empenho (só se não tiver NF)</li>
+      <li><strong>POST /api/anexos:</strong> Confirma e gera PDFs (desconta saldo)</li>
+      <li><strong>GET /api/dashboard:</strong> Retorna métricas para home</li>
+    </ul>
+    <h3>Configuração de ambiente</h3>
+    <p>O projeto suporta dois ambientes:</p>
+    <ul>
+      <li><strong>Desenvolvimento (local):</strong> SQLite em arquivo, variáveis de ambiente opcionais</li>
+      <li><strong>Produção (Railway):</strong> PostgreSQL remoto, variável <span class="kbd">DATABASE_URL</span> com
+        connection string</li>
+    </ul>
+    <p>A camada <span class="kbd">DBConn</span> detecta automaticamente qual DB usar baseado na disponibilidade de <span
+        class="kbd">DATABASE_URL</span>.</p>
+    <h3>Importar dados da API da Prefeitura</h3>
+    <p>Execute o script <span class="kbd">importar_api.py</span> para sincronizar contratos da API de Transparência de
+      Vila Velha:</p>
+    <ul>
+      <li>Lista automaticamente contratos da SEMED</li>
+      <li>Permite selecionar quais importar</li>
+      <li>Preenche campos básicos (número, objeto, vigência)</li>
+      <li>Requer manual completion de gestores, empenhos e dados bancários</li>
+      <li><strong>Nota:</strong> Sincronização com Railway: o banco remoto é PostgreSQL distinto. Para sync
+        bidirecional, use <span class="kbd">git push</span> com migration scripts ou dump/restore manual.</li>
+    </ul>
+    <h3>Geração de PDFs</h3>
+    <p>O módulo <span class="kbd">pdf_generator/__init__.py</span> encapsula toda a lógica:</p>
+    <ul>
+      <li>Importa papel timbrado de <span class="kbd">static/img/papelTimbrado.png</span></li>
+      <li>Anexo IX usa <span class="kbd">saldo_antes</span> (snapshot da NF) para representar saldo disponível no
+        momento da medição</li>
+      <li>Todos os 4 PDFs usam ReportLab Flowables para layout responsivo</li>
+      <li>PDFs são salvos em memória e retornados como bytes para download</li>
+    </ul>
+    <h3>Logs e debugging</h3>
+    <ul>
+      <li>Flask logs são exibidos no terminal durante <span class="kbd">python app.py</span></li>
+      <li>Errors são logged com stack trace completo</li>
+      <li>Em produção (Railway), acesse os logs via dashboard Railway</li>
+    </ul>
+  </div>
+
+  <!-- 11 -->
   <div class="manual-section" id="duvidas">
-    <h2><span class="sec-num">7</span> Dúvidas Frequentes</h2>
-    <h3>O sistema avisou "saldo insuficiente" — o que fazer?</h3>
-    <p>Significa que o valor que você tentou lançar no empenho é maior do que o saldo disponível. Verifique o saldo atual no relatório de empenhos do contrato. Se o empenho foi reforçado, edite o contrato e atualize o saldo manualmente.</p>
+    <h2><span class="sec-num">11</span> Dúvidas Frequentes</h2>
+    <h3>O sistema avisou "saldo insuficiente" - O que fazer?</h3>
+    <p>Significa que o valor que você tentou lançar no empenho é maior do que o saldo disponível. Verifique o saldo
+      atual no relatório de empenhos do contrato. Se o empenho foi reforçado, edite o contrato e atualize o saldo
+      manualmente.</p>
     <h3>Posso usar o mesmo empenho em mais de uma NF?</h3>
-    <p>Sim. O saldo é descontado a cada confirmação. O Anexo IX mostra o histórico completo de todas as NFs vinculadas ao empenho.</p>
-    <h3>O gestor suplente precisa assinar — como faço?</h3>
-    <p>Na tela de geração, no campo "Gestor", selecione o suplente em vez do titular. O Ateste será gerado com o título "Gestor Suplente do Contrato" automaticamente.</p>
+    <p>Sim. O saldo é descontado a cada confirmação. O Anexo IX mostra o histórico completo de todas as NFs vinculadas
+      ao empenho.</p>
+    <h3>O gestor suplente precisa assinar - Como faço?</h3>
+    <p>Na tela de geração, no campo "Gestor", selecione o suplente em vez do titular. O Ateste será gerado com o título
+      "Gestor Suplente do Contrato" automaticamente.</p>
     <h3>Posso alterar uma NF já confirmada?</h3>
     <p>Não diretamente. Cancele a NF atual (o saldo é restaurado) e gere uma nova com os dados corretos.</p>
-    <h3>O PDF saiu sem o papel timbrado.</h3>
-    <p>Verifique se o arquivo <span class="kbd">static/img/papelTimbrado.png</span> está na pasta correta do sistema. Ele precisa estar presente para o timbrado aparecer nos PDFs.</p>
     <h3>O número da medição tem algum formato obrigatório?</h3>
-    <p>Não, mas o padrão recomendado é <span class="kbd">MM/AAAA</span> (ex: 03/2026). O sistema sugere automaticamente com base no mês de referência informado.</p>
-    <h3>Como importar contratos da API da Prefeitura?</h3>
-    <p>Rode o script <span class="kbd">importar_api.py</span> na pasta do projeto. Ele consulta a API de Transparência de Vila Velha, lista os contratos da SEMED e permite selecionar quais importar. Dados não fornecidos pela API (gestores, empenhos, dados bancários) precisam ser completados manualmente depois.</p>
+    <p>Não, mas o padrão recomendado é <span class="kbd">MM/AAAA</span> (ex: 03/2026). O sistema sugere automaticamente
+      com base no mês de referência informado.</p>
+    <h3>Como exportar os dados em CSV?</h3>
+    <p>No Histórico de Pagamentos, clique em <strong>Exportar CSV</strong>. O arquivo pode ser aberto em Excel ou
+      qualquer planilha. Se um contrato estiver selecionado no filtro, o CSV será exportado apenas para aquele contrato.
+    </p>
+    <h3>Meu empenho tem uma NF vinculada mas preciso editar - O que fazer?</h3>
+    <p>Se a NF está errada, cancele-a primeiro. Isto liberará o empenho para edição. Após corrigir, gere uma nova NF. Se
+      a NF está certa mas você quer ajustar dados não-financeiros (como dados bancários), você pode editar livremente
+      sem cancelar a NF.</p>
+    <h3>Um rascunho desapareceu - Onde ele foi?</h3>
+    <p>Rascunhos com mais de 30 dias são automaticamente removidos do sistema. Se você deixou um rascunho inacabado, ele
+      pode ter expirado. Comece novamente a gerar os anexos (os dados anteriores estarão à disposição).</p>
   </div>
 
 </div>

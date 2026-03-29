@@ -2,7 +2,10 @@
 {% block title %}Pessoas – Gerador de Anexos{% endblock %}
 {% block content %}
 <div class="page-header flex-between">
-  <div><h1>Cadastro de Pessoas</h1><p>Gestores e Fiscais de contrato</p></div>
+  <div>
+    <h1>Cadastro de Pessoas</h1>
+    <p>Gestores e Fiscais de contrato</p>
+  </div>
   <button class="btn btn-primary" onclick="openModal('modal-pessoa')">+ Nova Pessoa</button>
 </div>
 
@@ -30,13 +33,23 @@
 <div class="card">
   <div class="table-wrapper">
     <table id="tbl-pessoas">
-      <thead><tr><th>Nome</th><th>Matrícula</th><th>Ações</th></tr></thead>
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Matrícula</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
       <tbody id="tbody-pessoas">
-        <tr><td colspan="3" style="text-align:center;color:var(--text-muted);padding:24px;">Carregando…</td></tr>
+        <tr>
+          <td colspan="3" style="text-align:center;color:var(--text-muted);padding:24px;">Carregando…</td>
+        </tr>
       </tbody>
     </table>
   </div>
-  <div id="paginacao-pessoas" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:16px 20px;border-top:1px solid var(--border);flex-wrap:wrap;"></div>
+  <div id="paginacao-pessoas"
+    style="display:flex;align-items:center;justify-content:center;gap:8px;padding:16px 20px;border-top:1px solid var(--border);flex-wrap:wrap;">
+  </div>
 </div>
 
 <div class="modal-overlay" id="modal-pessoa">
@@ -66,91 +79,112 @@
 
 {% block scripts %}
 <script>
-let _todasPessoas = [];
-let _paginaAtual  = 1;
+  let _todasPessoas = [];
+  let _paginaAtual = 1;
 
-async function carregarPessoas() {
-  try {
-    _todasPessoas = await apiFetch('/api/pessoas');
-    filtrar();
-  } catch(e) {
-    document.getElementById('tbody-pessoas').innerHTML =
-      '<tr><td colspan="3" style="text-align:center;color:var(--danger)">Erro ao carregar.</td></tr>';
+  async function carregarPessoas() {
+    try {
+      _todasPessoas = await apiFetch('/api/pessoas');
+      filtrar();
+    } catch (e) {
+      document.getElementById('tbody-pessoas').innerHTML =
+        '<tr><td colspan="3" style="text-align:center;color:var(--danger)">Erro ao carregar.</td></tr>';
+    }
   }
-}
 
-function filtrar() { _paginaAtual = 1; renderizar(); }
+  function filtrar() { _paginaAtual = 1; renderizar(); }
 
-function renderizar() {
-  const busca    = document.getElementById('busca-pessoas').value.toLowerCase().trim();
-  const itensPag = parseInt(document.getElementById('itens-por-pag').value);
-  let lista = _todasPessoas;
-  if (busca) lista = lista.filter(p =>
-    p.nome.toLowerCase().includes(busca) || (p.matricula||'').toLowerCase().includes(busca));
+  function renderizar() {
+    const busca = document.getElementById('busca-pessoas').value.toLowerCase().trim();
+    const itensPag = parseInt(document.getElementById('itens-por-pag').value);
+    let lista = _todasPessoas;
+    if (busca) lista = lista.filter(p =>
+      p.nome.toLowerCase().includes(busca) || (p.matricula || '').toLowerCase().includes(busca));
 
-  const total  = lista.length;
-  const totPag = itensPag >= 9999 ? 1 : Math.max(1, Math.ceil(total / itensPag));
-  _paginaAtual  = Math.min(_paginaAtual, totPag);
-  const inicio  = itensPag >= 9999 ? 0 : (_paginaAtual - 1) * itensPag;
-  const pagina  = itensPag >= 9999 ? lista : lista.slice(inicio, inicio + itensPag);
+    const total = lista.length;
+    const totPag = itensPag >= 9999 ? 1 : Math.max(1, Math.ceil(total / itensPag));
+    _paginaAtual = Math.min(_paginaAtual, totPag);
+    const inicio = itensPag >= 9999 ? 0 : (_paginaAtual - 1) * itensPag;
+    const pagina = itensPag >= 9999 ? lista : lista.slice(inicio, inicio + itensPag);
 
-  document.getElementById('contador-pessoas').textContent =
-    total === _todasPessoas.length ? `${total} pessoa(s)` : `${total} de ${_todasPessoas.length}`;
+    document.getElementById('contador-pessoas').textContent =
+      total === _todasPessoas.length ? `${total} pessoa(s)` : `${total} de ${_todasPessoas.length}`;
 
-  const tbody = document.getElementById('tbody-pessoas');
-  tbody.innerHTML = pagina.length ? pagina.map(p => `
+    const tbody = document.getElementById('tbody-pessoas');
+    tbody.innerHTML = pagina.length ? pagina.map(p => `
     <tr data-id="${p.id}">
-      <td>${esc(p.nome)}</td><td>${esc(p.matricula||'')}</td>
+      <td>${esc(p.nome)}</td><td>${esc(p.matricula || '')}</td>
       <td><div class="meatball-wrap">
         <button class="meatball-btn" onclick="toggleMeatball('mb-p-${p.id}',this)">···</button>
         <div class="meatball-menu" id="mb-p-${p.id}">
-          <button class="meatball-item" onclick="document.getElementById('mb-p-${p.id}').classList.remove('open');editarPessoa(${p.id},${JSON.stringify(p.nome)},${JSON.stringify(p.matricula||'')})">Editar</button>
+          <button class="meatball-item" data-action="editar" data-id="${p.id}" data-nome="${esc(p.nome)}" data-matricula="${esc(p.matricula || '')}">Editar</button>
           <div class="meatball-sep"></div>
-          <button class="meatball-item danger" onclick="document.getElementById('mb-p-${p.id}').classList.remove('open');deletarPessoa(${p.id})">Excluir</button>
+          <button class="meatball-item danger" data-action="deletar" data-id="${p.id}">Excluir</button>
         </div></div></td>
     </tr>`).join('') :
-    '<tr><td colspan="3" class="empty-state"><p>Nenhuma pessoa encontrada.</p></td></tr>';
+      '<tr><td colspan="3" class="empty-state"><p>Nenhuma pessoa encontrada.</p></td></tr>';
 
-  const pag = document.getElementById('paginacao-pessoas');
-  if (totPag <= 1) { pag.innerHTML = ''; return; }
-  let btns = `<button class="btn btn-secondary" style="padding:4px 10px;font-size:13px;" ${_paginaAtual===1?'disabled':''} onclick="irPagina(${_paginaAtual-1})">‹ Ant.</button>`;
-  for (let i=1;i<=totPag;i++) {
-    if (totPag>7 && Math.abs(i-_paginaAtual)>2 && i!==1 && i!==totPag) { if(i===2||i===totPag-1) btns+='<span style="padding:0 4px">…</span>'; continue; }
-    btns += `<button class="btn ${i===_paginaAtual?'btn-primary':'btn-secondary'}" style="padding:4px 10px;font-size:13px;min-width:34px;" onclick="irPagina(${i})">${i}</button>`;
+    const pag = document.getElementById('paginacao-pessoas');
+    if (totPag <= 1) { pag.innerHTML = ''; return; }
+    let btns = `<button class="btn btn-secondary" style="padding:4px 10px;font-size:13px;" ${_paginaAtual === 1 ? 'disabled' : ''} onclick="irPagina(${_paginaAtual - 1})">‹ Ant.</button>`;
+    for (let i = 1; i <= totPag; i++) {
+      if (totPag > 7 && Math.abs(i - _paginaAtual) > 2 && i !== 1 && i !== totPag) { if (i === 2 || i === totPag - 1) btns += '<span style="padding:0 4px">…</span>'; continue; }
+      btns += `<button class="btn ${i === _paginaAtual ? 'btn-primary' : 'btn-secondary'}" style="padding:4px 10px;font-size:13px;min-width:34px;" onclick="irPagina(${i})">${i}</button>`;
+    }
+    btns += `<button class="btn btn-secondary" style="padding:4px 10px;font-size:13px;" ${_paginaAtual === totPag ? 'disabled' : ''} onclick="irPagina(${_paginaAtual + 1})">Próx. ›</button>`;
+    pag.innerHTML = btns;
   }
-  btns += `<button class="btn btn-secondary" style="padding:4px 10px;font-size:13px;" ${_paginaAtual===totPag?'disabled':''} onclick="irPagina(${_paginaAtual+1})">Próx. ›</button>`;
-  pag.innerHTML = btns;
-}
 
-function irPagina(n) { _paginaAtual = n; renderizar(); }
+  function irPagina(n) { _paginaAtual = n; renderizar(); }
 
-function editarPessoa(id, nome, matricula) {
-  document.getElementById('pessoa-id').value = id;
-  document.getElementById('pessoa-nome').value = nome;
-  document.getElementById('pessoa-matricula').value = matricula;
-  document.getElementById('modal-title').textContent = 'Editar Pessoa';
-  openModal('modal-pessoa');
-}
+  function editarPessoa(id, nome, matricula) {
+    document.getElementById('pessoa-id').value = id;
+    document.getElementById('pessoa-nome').value = nome;
+    document.getElementById('pessoa-matricula').value = matricula;
+    document.getElementById('modal-title').textContent = 'Editar Pessoa';
+    openModal('modal-pessoa');
+  }
 
-async function salvarPessoa() {
-  const id = document.getElementById('pessoa-id').value;
-  const nome = document.getElementById('pessoa-nome').value.trim();
-  const matricula = document.getElementById('pessoa-matricula').value.trim();
-  if (!nome || !matricula) return showToast('Preencha nome e matrícula', 'error');
-  try {
-    if (id) { await apiFetch(`/api/pessoas/${id}`, {method:'PUT', body:{nome,matricula}}); showToast('Atualizada!','success'); }
-    else    { await apiFetch('/api/pessoas', {method:'POST', body:{nome,matricula}}); showToast('Cadastrada!','success'); }
-    closeModal('modal-pessoa');
-    await carregarPessoas();
-  } catch(e) {}
-}
+  async function salvarPessoa() {
+    const id = document.getElementById('pessoa-id').value;
+    const nome = document.getElementById('pessoa-nome').value.trim();
+    const matricula = document.getElementById('pessoa-matricula').value.trim();
+    if (!nome || !matricula) return showToast('Preencha nome e matrícula', 'error');
+    try {
+      if (id) { await apiFetch(`/api/pessoas/${id}`, { method: 'PUT', body: { nome, matricula } }); showToast('Atualizada!', 'success'); }
+      else { await apiFetch('/api/pessoas', { method: 'POST', body: { nome, matricula } }); showToast('Cadastrada!', 'success'); }
+      closeModal('modal-pessoa');
+      await carregarPessoas();
+    } catch (e) { }
+  }
 
-async function deletarPessoa(id) {
-  confirmAction('Deseja excluir esta pessoa?', async () => {
-    try { await apiFetch(`/api/pessoas/${id}`, {method:'DELETE'}); showToast('Excluída!','success'); await carregarPessoas(); } catch(e) {}
+  async function deletarPessoa(id) {
+    confirmAction('Deseja excluir esta pessoa?', async () => {
+      try { await apiFetch(`/api/pessoas/${id}`, { method: 'DELETE' }); showToast('Excluída!', 'success'); await carregarPessoas(); } catch (e) { }
+    });
+  }
+
+  // Event delegation para botões de meatball menu
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.meatball-item');
+    if (!btn) return;
+
+    const action = btn.dataset.action;
+    const id = parseInt(btn.dataset.id);
+
+    if (action === 'editar') {
+      const nome = btn.dataset.nome;
+      const matricula = btn.dataset.matricula;
+      // Fechar menu
+      btn.closest('.meatball-menu').classList.remove('open');
+      editarPessoa(id, nome, matricula);
+    } else if (action === 'deletar') {
+      // Fechar menu
+      btn.closest('.meatball-menu').classList.remove('open');
+      deletarPessoa(id);
+    }
   });
-}
 
-document.addEventListener('DOMContentLoaded', carregarPessoas);
+  document.addEventListener('DOMContentLoaded', carregarPessoas);
 </script>
 {% endblock %}

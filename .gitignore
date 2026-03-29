@@ -1,0 +1,46 @@
+# ── Banco de dados local ─────────────────────────────────────────────────────
+semed.db
+*.db
+*.sqlite
+*.sqlite3
+
+# ── Ambiente virtual Python ──────────────────────────────────────────────────
+venv/
+.venv/
+env/
+.env/
+ENV/
+
+# ── PyInstaller ──────────────────────────────────────────────────────────────
+dist/
+build/
+*.spec
+
+# ── Bytecode Python ──────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+
+# ── Variáveis de ambiente (NUNCA versionar senhas/chaves) ────────────────────
+.env
+.env.local
+.env.production
+
+# ── Logs ─────────────────────────────────────────────────────────────────────
+*.log
+logs/
+
+# ── Cobertura de testes ──────────────────────────────────────────────────────
+.coverage
+htmlcov/
+.pytest_cache/
+
+# ── Editores e IDEs ──────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db

@@ -1,4 +1,5 @@
 # Gerador de Anexos – SEMED
+## Prefeitura de Vila Velha · v0.4.0
 
 Desenvolvido por **Pedro Quinellato Dutra Vieira** com auxílio de **Claude Sonnet 4.6** (Anthropic).
 
@@ -7,6 +8,20 @@ Sistema web para geração automática dos anexos de pagamento de notas fiscais 
 ---
 
 ## Changelog
+
+### v0.5.0
+- Bugs críticos: rollback() adicionado ao DBConn; corrigido nos 6 blocos except que não faziam rollback
+- Segurança: rate limiting no login (delay + bloqueio após 10 tentativas), SECRET_KEY aleatória
+- Segurança: mensagens de erro internas não vazam mais para o cliente
+- PEP8: CAMPOS_LEGÍVEIS → FIELD_LABELS, DATE_FMT centralizado em utils.py
+- Qualidade: DBConn suporta context manager (with get_db() as db:)
+- Qualidade: imports movidos para o topo dos arquivos (zipfile, datetime, etc.)
+- Bugfix: validação de roles agora rejeita corretamente quando campos são None/vazio
+- Bugfix: int() sem validação substituído por _safe_int() em anexos.py
+- Bugfix: formato de moeda sempre BR (1.500,00) independente do locale do sistema
+- Novo: endpoint /health para monitoramento Railway
+- Novo: logging estruturado configurável via FLASK_DEBUG
+- Novo: suíte de 62 testes (test_utils, test_database, test_routes)
 
 ### v0.4.0
 - Dashboard home com métricas de contratos e empenhos
@@ -49,7 +64,6 @@ Sistema web para geração automática dos anexos de pagamento de notas fiscais 
 
 **Pré-requisito:** Windows 10 64-bit. Em caso de erro `VCRUNTIME140.dll`, instale o [Visual C++ Redistributable 2022 x64](https://aka.ms/vs/17/release/vc_redist.x64.exe).
 
----
 
 ## Rodando via Python (desenvolvimento local)
 
@@ -103,10 +117,8 @@ git push -u origin main
 python3 -c "from werkzeug.security import generate_password_hash; print(generate_password_hash('NOVA_SENHA'))"
 ```
 
-**5. Gere o domínio público**
-- Settings → Generate Domain
+**O Railway faz deploy automático a cada `git push`.**
 
-O Railway faz deploy automático a cada `git push`.
 
 ---
 
@@ -132,6 +144,32 @@ python importar_api.py
 ```
 
 Consulta a API pública de Vila Velha, lista os contratos da SEMED e permite importar para o banco.
+
+---
+
+## Rodando os testes
+
+```bash
+# Instalar pytest (uma vez)
+pip install pytest
+
+# Rodar todos os testes
+python -m pytest tests/ -v
+
+# Rodar sem pytest (Python puro)
+python3 -c "
+import sys; sys.path.insert(0, '.')
+from tests.test_utils import *; from tests.test_database import *; from tests.test_routes import *
+passed = failed = 0
+for cls in [TestValorPorExtenso, TestValidarCNPJ, TestFormatarCNPJ, TestMesNome, TestDateFmt,
+            TestPGRow, TestDBConnContextManager, TestInitDB,
+            TestHealth, TestAuth, TestPessoas, TestEmpresas, TestContratos, TestAnexosSaldoValidation]:
+    for name in [m for m in dir(cls) if m.startswith('test_')]:
+        try: getattr(cls(), name)(); passed += 1
+        except Exception as e: print(f'FAIL {cls.__name__}.{name}: {e}'); failed += 1
+print(f'{passed} passed, {failed} failed')
+"
+```
 
 ---
 
@@ -163,4 +201,4 @@ semed_anexos/
 
 ## Aviso
 
-Protótipo em desenvolvimento ativo. Versão atual: **v0.4.0**. Verifique os documentos gerados antes de uso oficial.
+Protótipo em desenvolvimento ativo. Versão atual: **v0.5.0**. Verifique os documentos gerados antes de uso oficial.

@@ -1,3 +1,6 @@
+# Formato de data padrão brasileiro
+DATE_FMT = '%d/%m/%Y'
+
 def valor_por_extenso(valor: float) -> str:
     if valor < 0:
         return "menos " + valor_por_extenso(-valor)
@@ -46,13 +49,19 @@ def valor_por_extenso(valor: float) -> str:
         return resultado
     reais_ext = numero_extenso(reais)
     reais_label = 'real' if reais == 1 else 'reais'
+    def fmt_brl(v):
+        """Formata valor no padrão brasileiro (1.500,00) independente do locale."""
+        s = f'{v:,.2f}'                   # usa , como milhar e . como decimal (en_US)
+        s = s.replace(',', 'X').replace('.', ',').replace('X', '.')  # converte para pt-BR
+        return f'R$ {s}'
+
     if centavos == 0:
-        return f'R$ {valor:,.2f} ({reais_ext} {reais_label})'
+        return f'{fmt_brl(valor)} ({reais_ext} {reais_label})'
     centavos_ext = numero_extenso(centavos)
     centavos_label = 'centavo' if centavos == 1 else 'centavos'
     if reais == 0:
-        return f'R$ {valor:,.2f} ({centavos_ext} {centavos_label})'
-    return f'R$ {valor:,.2f} ({reais_ext} {reais_label} e {centavos_ext} {centavos_label})'
+        return f'{fmt_brl(valor)} ({centavos_ext} {centavos_label})'
+    return f'{fmt_brl(valor)} ({reais_ext} {reais_label} e {centavos_ext} {centavos_label})'
 
 MESES = {
     1: 'Janeiro', 2: 'Fevereiro', 3: 'Março', 4: 'Abril',

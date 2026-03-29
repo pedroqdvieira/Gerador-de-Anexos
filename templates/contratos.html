@@ -345,6 +345,7 @@ async function salvarContrato() {
     fiscal_titular_id: document.getElementById('c-fiscal-tit').value,
     fiscal_suplente_id: document.getElementById('c-fiscal-sup').value,
     empenhos: coletarEmpenhos(),
+    empenho_ids_manter: coletarEmpenhos().filter(e=>e.id).map(e=>parseInt(e.id)),
   };
   if(!body.numero||!body.empresa_id||!body.objeto) return showToast('Preencha os campos obrigatórios','error');
   try {
