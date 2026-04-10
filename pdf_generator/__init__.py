@@ -801,7 +801,7 @@ def gerar_ateste(dados: dict) -> bytes:
         [Paragraph(f'<b>Credor:</b> {contrato["empresa"]}', styles['Normal9']),
          Paragraph(f'<b>Nota fiscal nº:</b> {nf["numero_nf"]}', styles['Normal9'])],
         [Paragraph(f'<b>Valor (em R$ e por extenso):</b> {val_extenso}', styles['Normal9']),
-         Paragraph(f'<b>Número e Período da medição:</b> {nf["numero_medicao"]} / {periodo}', styles['Normal9'])],
+         Paragraph(f'<b>Número e Período da medição:</b> {nf["numero_medicao"]} - {periodo}', styles['Normal9'])],
         [Paragraph(f'<b>Contrato:</b> {contrato["numero"]}', styles['Normal9']),
          Paragraph(f'<b>Objeto:</b> {contrato["objeto"]}', styles['Normal9'])],
         [Paragraph(f'<b>Banco:</b> {empresa.get("banco", "")}', styles['Normal9']),
