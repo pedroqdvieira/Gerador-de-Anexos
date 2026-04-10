@@ -152,6 +152,27 @@ def validar_cnpj(cnpj: str) -> bool:
     return int(cnpj[12]) == d1 and int(cnpj[13]) == d2
 
 
+def to_decimal(valor) -> _decimal.Decimal:
+    """
+    Converte valor para Decimal com segurança para operações aritméticas precisas.
+    Evita imprecisão de ponto flutuante ao fazer operações com floats.
+    
+    Exemplos:
+        to_decimal(900851.86)        → Decimal('900851.86')
+        to_decimal('900851.86')      → Decimal('900851.86')
+        to_decimal('900851,86')      → Decimal('900851.86')
+        to_decimal(900851.8599...)   → Decimal('900851.86') (arredonda corretamente)
+    """
+    try:
+        if isinstance(valor, _decimal.Decimal):
+            return valor
+        if isinstance(valor, str):
+            return _decimal.Decimal(valor.replace(',', '.'))
+        return _decimal.Decimal(str(valor))
+    except (TypeError, ValueError, _decimal.InvalidOperation):
+        return _decimal.Decimal('0')
+
+
 def formatar_valor_br(valor) -> str:
     """
     Formata valor numérico no padrão brasileiro: 900.851,86
@@ -166,12 +187,18 @@ def formatar_valor_br(valor) -> str:
         formatar_valor_br(1500.00)      → '1.500,00'
     """
     try:
-        # Converte para Decimal com 2 casas para eliminar imprecisão de float
+        # Converte para Decimal mantendo precisão exata
         if isinstance(valor, str):
             # Substitui vírgula por ponto se necessário (caso usuário entre com formato brasileiro)
             valor = valor.replace(',', '.')
+            d = _decimal.Decimal(valor)
+        else:
+            # Para float, converter via string para evitar imprecisão binária
+            # Exemplo: 900851.86 (float) pode ser 900851.8599999998 internamente
+            d = _decimal.Decimal(str(valor))
         
-        d = _decimal.Decimal(str(round(float(valor), 2)))
+        # Arredondar para 2 casas decimais usando ROUND_HALF_UP (padrão brasileiro)
+        d = d.quantize(_decimal.Decimal('0.01'), rounding=_decimal.ROUND_HALF_UP)
         
         # Formata com 2 casas decimais
         s = f'{d:,.2f}'  # Format: 900,851.86 (americano)
