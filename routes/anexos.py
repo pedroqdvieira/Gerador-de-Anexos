@@ -6,7 +6,7 @@ from datetime import date, datetime
 from flask import Blueprint, request, jsonify, render_template, send_file, abort
 from database import get_db
 from routes.contratos import get_contrato_full
-from utils import DATE_FMT
+from utils import DATE_FMT, formatar_valor_br
 from pdf_generator import gerar_anexo_iii, gerar_anexo_vi, gerar_anexo_ix, gerar_ateste
 from pypdf import PdfWriter, PdfReader
 
@@ -170,13 +170,13 @@ def validar_saldo():
         saldo = emp['saldo_atual']
         if valor_uso > saldo:
             erros.append(f'Empenho {emp["numero"]}: saldo insuficiente. '
-                         f'Disponível: R$ {saldo:,.2f} | Solicitado: R$ {valor_uso:,.2f}')
+                         f'Disponível: R$ {formatar_valor_br(saldo)} | Solicitado: R$ {formatar_valor_br(valor_uso)}')
         # Alerta: saldo após pagamento menor que o valor deste pagamento
         saldo_apos = saldo - valor_uso
         if saldo_apos < valor_uso and saldo_apos > 0:
             alertas.append(f'Empenho {emp["numero"]}: após este pagamento o saldo restante '
-                           f'(R$ {saldo_apos:,.2f}) será menor que o valor pago '
-                           f'(R$ {valor_uso:,.2f}).')
+                           f'(R$ {formatar_valor_br(saldo_apos)}) será menor que o valor pago '
+                           f'(R$ {formatar_valor_br(valor_uso)}).')
         elif saldo_apos <= 0 and saldo_apos == 0:
             alertas.append(f'Empenho {emp["numero"]}: este pagamento zerará o saldo do empenho.')
     db.close()
@@ -236,7 +236,7 @@ def salvar_rascunho():
         if float(emp_uso['valor_usado']) > emp['saldo_atual']:
             db.close()
             return jsonify({'error': f'Saldo insuficiente no empenho {emp["numero"]}. '
-                           f'Disponível: R$ {emp["saldo_atual"]:,.2f}'}), 400
+                           f'Disponível: R$ {formatar_valor_br(emp["saldo_atual"])}'}), 400
     try:
         checklist_json = json.dumps(data.get('checklist', {}))
         nf_id_existente = data.get('nf_id')  # Se presente, atualiza rascunho existente
@@ -484,12 +484,12 @@ def exportar_xlsx():
             JOIN empenhos e ON ne.empenho_id=e.id WHERE ne.nota_fiscal_id=?''',
             (nf['id'],)).fetchall()
         emp_nums = ' | '.join(e['numero'] for e in emps)
-        emp_vals = ' | '.join(f'R$ {e["valor_usado"]:,.2f}' for e in emps)
+        emp_vals = ' | '.join(f'R$ {formatar_valor_br(e["valor_usado"])}' for e in emps)
         mes = MESES.get(nf['mes_referencia'], str(nf['mes_referencia']))
         status = 'Cancelada' if nf['cancelada'] else ('Confirmada' if nf['data_geracao'] else 'Rascunho')
         writer.writerow([
             nf['id'], nf['contrato'], nf['empresa'],
-            nf['numero_nf'], f"R$ {nf['valor_nf']:,.2f}",
+            nf['numero_nf'], f"R$ {formatar_valor_br(nf['valor_nf'])}",
             nf['numero_medicao'], mes, nf['ano_referencia'],
             nf['periodo_inicio'], nf['periodo_fim'],
             nf['data_geracao'] or '', status, emp_nums, emp_vals
