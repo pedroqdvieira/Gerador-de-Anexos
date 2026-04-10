@@ -11,7 +11,7 @@ from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT, TA_JUSTIFY
 from reportlab.platypus.flowables import Flowable
 from reportlab.pdfgen import canvas as canvas_module
 
-from utils import valor_por_extenso, mes_nome, formatar_cnpj
+from utils import valor_por_extenso, mes_nome, formatar_cnpj, formatar_valor_br
 
 def fmt_data(valor):
     """Converte yyyy-mm-dd para dd/mm/yyyy. Retorna o valor original se já estiver no formato correto."""
@@ -403,9 +403,9 @@ def gerar_anexo_vi(dados: dict) -> bytes:
         [Paragraph(f'<b>Empresa Contratada:</b> {contrato["empresa"]}', styles['Normal9']), ''],
         [Paragraph(f'<b>Serviços:</b> {contrato["objeto"]}', styles['Normal9']), ''],
         [Paragraph(f'<b>Nº de Funcionários:</b> {nf.get("num_funcionarios", "N/A")}', styles['Normal9']),
-         Paragraph(f'<b>Valor Bruto Devido:</b> R$ {nf["valor_nf"]:,.2f}', styles['Normal9'])],
+         Paragraph(f'<b>Valor Bruto Devido:</b> R$ {formatar_valor_br(nf["valor_nf"])}', styles['Normal9'])],
         [Paragraph(f'<b>Nota Fiscal nº:</b> {nf["numero_nf"]}', styles['Normal9']),
-         Paragraph(f'<b>Valor Bruto Faturado:</b> R$ {nf["valor_nf"]:,.2f}', styles['Normal9'])],
+         Paragraph(f'<b>Valor Bruto Faturado:</b> R$ {formatar_valor_br(nf["valor_nf"])}', styles['Normal9'])],
     ]
     hcols = [CONTENT_W * 0.65, CONTENT_W * 0.35]
     ht = Table(header_data, colWidths=hcols)
@@ -637,7 +637,7 @@ def gerar_anexo_ix(dados: dict) -> bytes:
             col_medicao = Paragraph(nf['numero_medicao'], styles['Small8C'])
             col_mes = Paragraph(mes_ref, styles['Small8C'])
             col_nf = Paragraph(nf['numero_nf'], styles['Small8C'])
-            col_val_nf = Paragraph(f'R$ {nf["valor_nf"]:,.2f}', styles['Small8C'])
+            col_val_nf = Paragraph(f'R$ {formatar_valor_br(nf["valor_nf"])}', styles['Small8C'])
         else:
             col_medicao = Paragraph('', styles['Small8C'])
             col_mes = Paragraph('', styles['Small8C'])
@@ -646,12 +646,12 @@ def gerar_anexo_ix(dados: dict) -> bytes:
 
         table_rows.append([
             Paragraph(emp['numero'], styles['Small8C']),
-            Paragraph(f'R$ {saldo_antes:,.2f}', styles['Small8C']),
+            Paragraph(f'R$ {formatar_valor_br(saldo_antes)}', styles['Small8C']),
             col_medicao,
             col_mes,
             col_nf,
             col_val_nf,
-            Paragraph(f'R$ {saldo_depois:,.2f}', styles['Small8C']),
+            Paragraph(f'R$ {formatar_valor_br(saldo_depois)}', styles['Small8C']),
         ])
 
         # Mescla verticalmente medição/mês/NF/valorNF se múltiplos empenhos
@@ -684,7 +684,7 @@ def gerar_anexo_ix(dados: dict) -> bytes:
             col_tot_label,
             Paragraph('', styles['Small8C']),
             Paragraph(f'<b>{emp["numero"]}</b>', styles['Small8C']),
-            Paragraph(f'<b>R$ {saldo_depois:,.2f}</b>', styles['Small8C']),
+            Paragraph(f'<b>R$ {formatar_valor_br(saldo_depois)}</b>', styles['Small8C']),
         ])
 
         # Mescla coluna "Totalização" verticalmente se múltiplos empenhos
