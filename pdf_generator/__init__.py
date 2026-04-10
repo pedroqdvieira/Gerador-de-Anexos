@@ -11,7 +11,7 @@ from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT, TA_JUSTIFY
 from reportlab.platypus.flowables import Flowable
 from reportlab.pdfgen import canvas as canvas_module
 
-from utils import valor_por_extenso, mes_nome, formatar_cnpj, formatar_valor_br
+from utils import valor_por_extenso, mes_nome, formatar_cnpj, formatar_valor_br, to_decimal
 
 def fmt_data(valor):
     """Converte yyyy-mm-dd para dd/mm/yyyy. Retorna o valor original se já estiver no formato correto."""
@@ -630,7 +630,8 @@ def gerar_anexo_ix(dados: dict) -> bytes:
     for idx, emp in enumerate(empenhos_usados):
         saldo_antes = emp['saldo_anterior']  # Saldo disponível no momento da medição
         valor_usado = emp['valor_usado']  # Valor usado neste pagamento
-        saldo_depois = saldo_antes - valor_usado  # Saldo após este pagamento
+        # Usar Decimal para operações aritméticas evita erros de ponto flutuante
+        saldo_depois = float(to_decimal(saldo_antes) - to_decimal(valor_usado))
 
         # Medição, mês/ano, NF e valor da NF só aparecem na primeira linha do grupo
         if idx == 0:
@@ -671,7 +672,8 @@ def gerar_anexo_ix(dados: dict) -> bytes:
     # Totalização — uma linha por empenho
     tot_start = row_i
     for idx, emp in enumerate(empenhos_usados):
-        saldo_depois = emp['saldo_anterior'] - emp['valor_usado']
+        # Usar Decimal para operações aritméticas evita erros de ponto flutuante
+        saldo_depois = float(to_decimal(emp['saldo_anterior']) - to_decimal(emp['valor_usado']))
         if idx == 0:
             col_tot_label = Paragraph('<b>Totalização e\nSaldo atual</b>', styles['Small8C'])
         else:
