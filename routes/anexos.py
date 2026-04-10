@@ -6,7 +6,7 @@ from datetime import date, datetime
 from flask import Blueprint, request, jsonify, render_template, send_file, abort
 from database import get_db
 from routes.contratos import get_contrato_full
-from utils import DATE_FMT, formatar_valor_br
+from utils import DATE_FMT, formatar_valor_br, to_decimal
 from pdf_generator import gerar_anexo_iii, gerar_anexo_vi, gerar_anexo_ix, gerar_ateste
 from pypdf import PdfWriter, PdfReader
 
@@ -172,7 +172,8 @@ def validar_saldo():
             erros.append(f'Empenho {emp["numero"]}: saldo insuficiente. '
                          f'Disponível: R$ {formatar_valor_br(saldo)} | Solicitado: R$ {formatar_valor_br(valor_uso)}')
         # Alerta: saldo após pagamento menor que o valor deste pagamento
-        saldo_apos = saldo - valor_uso
+        # Usar to_decimal para operações aritméticas evita erros de ponto flutuante
+        saldo_apos = float(to_decimal(saldo) - to_decimal(valor_uso))
         if saldo_apos < valor_uso and saldo_apos > 0:
             alertas.append(f'Empenho {emp["numero"]}: após este pagamento o saldo restante '
                            f'(R$ {formatar_valor_br(saldo_apos)}) será menor que o valor pago '
