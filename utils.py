@@ -150,3 +150,34 @@ def validar_cnpj(cnpj: str) -> bool:
     d1 = calc_digito(cnpj, pesos1)
     d2 = calc_digito(cnpj, pesos2)
     return int(cnpj[12]) == d1 and int(cnpj[13]) == d2
+
+
+def formatar_valor_br(valor) -> str:
+    """
+    Formata valor numérico no padrão brasileiro: 900.851,86
+    
+    Usa Decimal internamente para evitar imprecisão de ponto flutuante.
+    Retorna string formatada como "900.851,86" ou "0,00" se inválido.
+    
+    Exemplos:
+        formatar_valor_br(900851.86)    → '900.851,86'
+        formatar_valor_br('900851.86')  → '900.851,86'
+        formatar_valor_br(10.50)        → '10,50'
+        formatar_valor_br(1500.00)      → '1.500,00'
+    """
+    try:
+        # Converte para Decimal com 2 casas para eliminar imprecisão de float
+        if isinstance(valor, str):
+            # Substitui vírgula por ponto se necessário (caso usuário entre com formato brasileiro)
+            valor = valor.replace(',', '.')
+        
+        d = _decimal.Decimal(str(round(float(valor), 2)))
+        
+        # Formata com 2 casas decimais
+        s = f'{d:,.2f}'  # Format: 900,851.86 (americano)
+        
+        # Converte para formato brasileiro: 900.851,86
+        s = s.replace(',', 'X').replace('.', ',').replace('X', '.')
+        return s
+    except (TypeError, ValueError, _decimal.InvalidOperation):
+        return '0,00'
